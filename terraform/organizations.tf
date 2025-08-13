@@ -3,12 +3,12 @@
 # ----------------------------------------------------------------
 
 resource "aws_organizations_organizational_unit" "admin_ou_prd" {
-  name      = "admin-prd-ou"
+  name      = "${var.project_name}-${var.env}-ou-prd"
   parent_id = data.aws_organizations_organization.admin_org.roots[0].id
 }
 
 resource "aws_organizations_organizational_unit" "admin_ou_dev" {
-  name      = "admin-dev-ou"
+  name      = "${var.project_name}-${var.env}-ou-dev"
   parent_id = data.aws_organizations_organization.admin_org.roots[0].id
 }
 
@@ -21,17 +21,17 @@ resource "aws_organizations_organizational_unit" "admin_ou_dev" {
 # }
 
 resource "aws_organizations_policy" "admin_orgpolicy_region_restriction" {
-  name    = "admin-prd-orgpolicy-block-region"
+  name    = "${var.project_name}-${var.env}-orgpolicy-block-region"
   content = file("${path.module}/policies/region_restriction.json")
 }
 
 resource "aws_organizations_policy" "admin_orgpolicy_block_root" {
-  name    = "admin-prd-orgpolicy-deny-root"
+  name    = "${var.project_name}-${var.env}-orgpolicy-deny-root"
   content = file("${path.module}/policies/block_root_user.json")
 }
 
 resource "aws_organizations_policy" "admin_orgpolicy_governance" {
-  name    = "ProtectGovernanceSettings"
+  name    = "${var.project_name}-${var.env}-orgpolicy-protect-governance"
   content = file("${path.module}/policies/governance.json")
 }
 
