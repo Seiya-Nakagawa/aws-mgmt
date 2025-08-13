@@ -10,7 +10,7 @@ variable "project_name" {
   type        = string
 }
 
-# variable "bucket_name" {
-#   description = "作成するS3バケットの名前（グローバルで一意である必要があります）"
-#   type        = string
-# }
+variable "env" {
+  description = "プロジェクト名。リソースのタグに使います。"
+  type        = string
+}
