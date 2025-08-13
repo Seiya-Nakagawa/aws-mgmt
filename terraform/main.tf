@@ -11,7 +11,7 @@ data "aws_ssoadmin_instances" "admin_sso" {
 
 # --- ローカル変数: 複数のリソースで参照する値を定義 ---
 locals {
-  sso_instance_arn = data.aws_ssoadmin_instances.sso.arns[0]
+  sso_instance_arn = data.aws_ssoadmin_instances.admin_sso.arns[0]
 
   # 作成するOUのIDをマップとして管理し、アカウント作成時に参照する
   ou_ids = {
