@@ -82,8 +82,7 @@ graph TD
 ```
 
 *   **`terraform.tfvars`ファイルは使用しない。** 変数はすべてTerraform CloudのUI上で管理。
-*   SCPポリシーなどの長いJSONは、可読性のため別ファイル（例: `policies/*.json`）に分割し、`file()`関数で読み込む。
-*   
+*   SCPポリシーなどのJSONは、他のTerraformリソースを参照することを考慮して`jsonencode()`で記載する。
 
 ## 4. Terraform Cloud 運用設計
 

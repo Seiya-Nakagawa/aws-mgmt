@@ -14,7 +14,6 @@ locals {
 
   # 作成するOUのIDをマップとして管理し、アカウント作成時に参照する
   ou_ids = {
-    # このマップは service-organizations.tf で定義されたOUを参照します
     "Workloads-Prd" = aws_organizations_organizational_unit.admin_ou_prd.id
     "Workloads-Dev" = aws_organizations_organizational_unit.admin_ou_dev.id
   }
