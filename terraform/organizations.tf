@@ -2,16 +2,28 @@
 # Service: AWS Organizations
 # ----------------------------------------------------------------
 
+# AWS Organizationsの設定を管理します。
+resource "aws_organizations_organization" "admin_org" {
+  # この設定により、SCPやタグポリシーなど全ての機能が利用可能になります
+  feature_set = "ALL"
+
+  # 有効化したいポリシータイプを指定します
+  enabled_policy_types = [
+    "SERVICE_CONTROL_POLICY"
+  ]
+}
+
+
 # 本番用OU
 resource "aws_organizations_organizational_unit" "admin_ou_prd" {
   name      = "${var.project_name}-${var.env}-ou-prd"
-  parent_id = data.aws_organizations_organization.admin_org.roots[0].id
+  parent_id = aws_organizations_organization.admin_org.roots[0].id
 }
 
 # 開発用OU
 resource "aws_organizations_organizational_unit" "admin_ou_dev" {
   name      = "${var.project_name}-${var.env}-ou-dev"
-  parent_id = data.aws_organizations_organization.admin_org.roots[0].id
+  parent_id = aws_organizations_organization.admin_org.roots[0].id
 }
 
 # Todo:システム構築完了後に有効化
