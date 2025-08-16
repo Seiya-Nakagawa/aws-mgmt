@@ -5,7 +5,7 @@ resource "aws_organizations_organization" "org" {
 
   # 有効化したいポリシータイプを指定します
   enabled_policy_types = [
-    "SERVICE_CONTROL_POLICY"
+    "SERVICE_CONTROL_POLICY",
   ]
 
   aws_service_access_principals = [
@@ -17,13 +17,13 @@ resource "aws_organizations_organization" "org" {
 
 # 本番用OU
 resource "aws_organizations_organizational_unit" "ou_prd" {
-  name      = "${var.project_name}-${var.env}-ou-prd"
+  name      = "${var.system_name}-${var.env}-ou-prd"
   parent_id = aws_organizations_organization.org.roots[0].id
 }
 
 # 開発用OU
 resource "aws_organizations_organizational_unit" "ou_dev" {
-  name      = "${var.project_name}-${var.env}-ou-dev"
+  name      = "${var.system_name}-${var.env}-ou-dev"
   parent_id = aws_organizations_organization.org.roots[0].id
 }
 
@@ -39,7 +39,7 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
 
 # リージョン制約ポリシー
 resource "aws_organizations_policy" "org_policy_region_restriction" {
-  name    = "${var.project_name}-${var.env}-orgpolicy-block-region"
+  name    = "${var.system_name}-${var.env}-orgpolicy-block-region"
   content = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -88,7 +88,7 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
 
 # ルートユーザーの操作をブロックするポリシー
 resource "aws_organizations_policy" "org_policy_block_root" {
-  name = "${var.project_name}-${var.env}-orgpolicy-deny-root"
+  name = "${var.system_name}-${var.env}-orgpolicy-deny-root"
   content = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -109,7 +109,7 @@ resource "aws_organizations_policy" "org_policy_block_root" {
 
 # ガバナンス保護ポリシー
 resource "aws_organizations_policy" "org_policy_governance" {
-  name = "${var.project_name}-${var.env}-orgpolicy-protect-governance"
+  name = "${var.system_name}-${var.env}-orgpolicy-protect-governance"
   content = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -137,9 +137,10 @@ resource "aws_organizations_policy" "org_policy_governance" {
 # ポリシーをルートにアタッチ
 # resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
 #   for_each = {
-#     region_restriction = aws_organizations_policy.organizations_policy_region_restriction.id
-#     block_root_user    = aws_organizations_policy.organizations_policy_block_root.id
-#     protect_governance = aws_organizations_policy.organizations_policy_governance.id
+#     region_restriction = aws_organizations_policy.org_policy_region_restriction.id
+#     block_root_user    = aws_organizations_policy.org_policy_block_root.id
+#     protect_governance = aws_organizations_policy.org_policy_governance.id
+#     tag                = aws_organizations_policy.org_policy_tag.id
 #   }
 #   policy_id = each.value
 #   target_id = aws_organizations_organization.org.roots[0].id

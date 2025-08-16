@@ -3,13 +3,13 @@ variable "aws_region" {
   type        = string
 }
 
-variable "project_name" {
-  description = "プロジェクト名。リソースのタグに使います。"
+variable "system_name" {
+  description = "システム識別子"
   type        = string
 }
 
 variable "env" {
-  description = "プロジェクト名。リソースのタグに使います。"
+  description = "環境識別子"
   type        = string
 }
 
@@ -17,4 +17,9 @@ variable "sso_user_ids" {
   type        = list(string)
   description = "管理対象ユーザーリスト"
   default     = []
+}
+
+variable "aws_account_id" {
+  description = "AWSアカウントID"
+  type        = string
 }
