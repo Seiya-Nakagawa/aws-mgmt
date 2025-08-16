@@ -18,8 +18,3 @@ variable "sso_user_ids" {
   description = "管理対象ユーザーリスト"
   default     = []
 }
-
-variable "aws_account_id" {
-  description = "AWSアカウントID"
-  type        = string
-}
