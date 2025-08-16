@@ -5,7 +5,7 @@ data "aws_ssoadmin_instances" "admin_sso_instances" {}
 locals {
   # 読み込んだSSOインスタンスのARNをローカル変数に格納
   # one()関数は、リストの要素が一つだけであることを保証し、その要素を返す安全な方法
-  sso_instance_arn = one(data.aws_ssoadmin_instances.admin_ssoadmin_instances.arns)
+  sso_instance_arn = one(data.aws_ssoadmin_instances.admin_sso_instances.arns)
 }
 
 # 組織管理用許可セット
