@@ -107,6 +107,8 @@ resource "aws_identitystore_group_membership" "admin_members" {
   # groupが "administrators" のユーザーだけを対象にリソースを作成
   for_each = {
     for user_id, user_data in local.sso_users_data : user_id => user_data
+    # user_id が機密ではないことを明示
+    nonsensitive(user_id) => user_data
     if user_data.group == "administrators"
   }
 
@@ -125,6 +127,8 @@ resource "aws_identitystore_group_membership" "developer_members" {
   # for_each で全ユーザーをループし、groupが "developers" のユーザーだけを対象にリソースを作成
   for_each = {
     for user_id, user_data in local.sso_users_data : user_id => user_data
+    # user_id が機密ではないことを明示
+    nonsensitive(user_id) => user_data
     if user_data.group == "developers"
   }
 
