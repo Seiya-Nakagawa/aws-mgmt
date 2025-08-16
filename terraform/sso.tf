@@ -102,18 +102,36 @@ resource "aws_identitystore_user" "identity_user_admin" {
   }
 }
 
-# # ユーザーをグループに追加
-# resource "aws_identitystore_group_membership" "admin_membership" {
-#   identity_store_id = local.identity_store_id
-#   group_id          = aws_identitystore_group.administrators.group_id
-#   member_id         = aws_identitystore_user.user_a.user_id
-# }
+# ユーザーをグループに追加
+resource "aws_identitystore_group_membership" "admin_members" {
+  # groupが "administrators" のユーザーだけを対象にリソースを作成
+  for_each = {
+    for user_id, user_data in local.sso_users_data : user_id => user_data
+    if user_data.group == "administrators"
+  }
 
-# resource "aws_identitystore_group_membership" "developer_membership" {
-#   identity_store_id = local.identity_store_id
-#   group_id          = aws_identitystore_group.developers.group_id
-#   member_id         = aws_identitystore_user.user_b.user_id
-# }
+  identity_store_id = local.identity_store_id
+  
+  # どのグループに追加するかを指定
+  group_id = aws_identitystore_group.identity_group_administrators.group_id
+  
+  # どのユーザーを追加するかを指定
+  # aws_identitystore_user.identity_user_adminリソースの中から、現在のループのキー(user_id)に一致するユーザーのIDを参照
+  member_id = aws_identitystore_user.identity_user_admin[each.key].user_id
+}
+
+# 開発者グループのメンバーシップを作成
+resource "aws_identitystore_group_membership" "developer_members" {
+  # for_each で全ユーザーをループし、groupが "developers" のユーザーだけを対象にリソースを作成
+  for_each = {
+    for user_id, user_data in local.sso_users_data : user_id => user_data
+    if user_data.group == "developers"
+  }
+
+  identity_store_id = local.identity_store_id
+  group_id          = aws_identitystore_group.identity_group_developers.group_id
+  member_id         = aws_identitystore_user.identity_user_admin[each.key].user_id
+}
 
 
 # #-------------------------------------------------
