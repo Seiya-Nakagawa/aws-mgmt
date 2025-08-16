@@ -10,7 +10,7 @@ terraform {
 
     # このコードがどのワークスペース群に属するかを示すタグを設定
     workspaces {
-      name = ["aws-admin-cmn"]
+      name = "aws-admin-cmn"
     }
   }
 

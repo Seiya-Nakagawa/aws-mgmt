@@ -5,8 +5,7 @@
 # --- データソース: 既存のOrganization/SSOインスタンス情報を取得 ---
 data "aws_organizations_organization" "admin_org" {}
 
-data "aws_ssoadmin_instances" "admin_sso" {
-}
+data "aws_ssoadmin_instances" "admin_sso" {}
 
 # --- ローカル変数: 複数のリソースで参照する値を定義 ---
 locals {

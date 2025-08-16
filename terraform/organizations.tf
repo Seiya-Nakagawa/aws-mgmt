@@ -138,5 +138,5 @@ resource "aws_organizations_policy_attachment" "admin_orgpolicy_attach_root" {
     protect_governance = aws_organizations_policy.admin_orgpolicy_governance.id
   }
   policy_id = each.value
-  target_id = data.aws_organizations_organization.admin_org.roots[0].id
+  target_id = aws_organizations_organization.admin_org.roots[0].id
 }
