@@ -1,4 +1,3 @@
-
 # 手動で有効化したSSOインスタンスの情報を取得
 data "aws_ssoadmin_instances" "admin_sso_instances" {}
 
