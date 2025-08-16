@@ -13,18 +13,8 @@ variable "env" {
   type        = string
 }
 
-variable "sso_users" {
-  type = map(object({
-    display_name = string
-    given_name   = string # 名
-    family_name  = string # 姓
-    email        = string # 通知用メールアドレス
-  }))
-  description = "IAM Identity Centerに作成する全ユーザーのマップ。マップのキーがログインユーザー名(user_name)になります。"
-
-  # ユーザー情報は機密情報
-  sensitive = true
-  
-  # デフォルト値を空のマップにしておくと、ユーザーがいない場合でもエラーにならない
-  default = {}
+variable "sso_user_names" {
+  type        = list(string)
+  description = "IAM Identity Centerで管理するユーザーのログイン名（@より前の部分）のリスト。このリストを元にSSMから情報を取得します。"
+  default     = [] # デフォルトは空のリスト
 }

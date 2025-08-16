@@ -1,5 +1,5 @@
 # AWS Organizationsの設定
-resource "aws_organizations_organization" "admin_org" {
+resource "aws_organizations_organization" "org" {
   # この設定により、SCPやタグポリシーなど全ての機能が利用可能になります
   feature_set = "ALL"
 
@@ -11,25 +11,24 @@ resource "aws_organizations_organization" "admin_org" {
   aws_service_access_principals = [
     "sso.amazonaws.com",
     "cloudtrail.amazonaws.com",
-    "iam.amazonaws.com"
   ]
 }
 
 # 本番用OU
-resource "aws_organizations_organizational_unit" "admin_ou_prd" {
+resource "aws_organizations_organizational_unit" "ou_prd" {
   name      = "${var.project_name}-${var.env}-ou-prd"
-  parent_id = aws_organizations_organization.admin_org.roots[0].id
+  parent_id = aws_organizations_organization.org.roots[0].id
 }
 
 # 開発用OU
-resource "aws_organizations_organizational_unit" "admin_ou_dev" {
+resource "aws_organizations_organizational_unit" "ou_dev" {
   name      = "${var.project_name}-${var.env}-ou-dev"
-  parent_id = aws_organizations_organization.admin_org.roots[0].id
+  parent_id = aws_organizations_organization.org.roots[0].id
 }
 
 # Todo:システム構築完了後に有効化
 # メンバーアカウントの作成
-# resource "aws_organizations_account" "admin_ou_dev" {
+# resource "aws_organizations_account" "ou_dev" {
 #   for_each = var.new_accounts
 #   name      = each.value.name
 #   email     = each.value.email
@@ -38,7 +37,7 @@ resource "aws_organizations_organizational_unit" "admin_ou_dev" {
 # }
 
 # リージョン制約ポリシー
-resource "aws_organizations_policy" "admin_orgpolicy_region_restriction" {
+resource "aws_organizations_policy" "org_policy_region_restriction" {
   name    = "${var.project_name}-${var.env}-orgpolicy-block-region"
   content = jsonencode({
     Version = "2012-10-17",
@@ -83,11 +82,11 @@ resource "aws_organizations_policy" "admin_orgpolicy_region_restriction" {
       }
     ]
   })
-  depends_on = [aws_organizations_organization.admin_org] 
+  depends_on = [aws_organizations_organization.org] 
 }
 
 # ルートユーザーの操作をブロックするポリシー
-resource "aws_organizations_policy" "admin_orgpolicy_block_root" {
+resource "aws_organizations_policy" "org_policy_block_root" {
   name = "${var.project_name}-${var.env}-orgpolicy-deny-root"
   content = jsonencode({
     Version = "2012-10-17",
@@ -104,11 +103,11 @@ resource "aws_organizations_policy" "admin_orgpolicy_block_root" {
       }
     ]
   })
-  depends_on = [aws_organizations_organization.admin_org] 
+  depends_on = [aws_organizations_organization.org] 
 }
 
 # ガバナンス保護ポリシー
-resource "aws_organizations_policy" "admin_orgpolicy_governance" {
+resource "aws_organizations_policy" "org_policy_governance" {
   name = "${var.project_name}-${var.env}-orgpolicy-protect-governance"
   content = jsonencode({
     Version = "2012-10-17",
@@ -131,16 +130,16 @@ resource "aws_organizations_policy" "admin_orgpolicy_governance" {
       }
     ]
   })
-  depends_on = [aws_organizations_organization.admin_org] 
+  depends_on = [aws_organizations_organization.org] 
 }
 
 # ポリシーをルートにアタッチ
-# resource "aws_organizations_policy_attachment" "admin_orgpolicy_attach_root" {
+# resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
 #   for_each = {
-#     region_restriction = aws_organizations_policy.admin_orgpolicy_region_restriction.id
-#     block_root_user    = aws_organizations_policy.admin_orgpolicy_block_root.id
-#     protect_governance = aws_organizations_policy.admin_orgpolicy_governance.id
+#     region_restriction = aws_organizations_policy.organizations_policy_region_restriction.id
+#     block_root_user    = aws_organizations_policy.organizations_policy_block_root.id
+#     protect_governance = aws_organizations_policy.organizations_policy_governance.id
 #   }
 #   policy_id = each.value
-#   target_id = aws_organizations_organization.admin_org.roots[0].id
+#   target_id = aws_organizations_organization.org.roots[0].id
 # }

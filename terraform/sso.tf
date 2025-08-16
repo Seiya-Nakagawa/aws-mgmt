@@ -1,38 +1,59 @@
 # 手動で有効化したSSOインスタンスの情報を取得
-data "aws_ssoadmin_instances" "admin_sso_instances" {}
+data "aws_ssoadmin_instances" "sso_instances" {}
+
+data "aws_ssm_parameter" "user_params" {
+  for_each = toset(flatten([
+    for user_name in var.sso_user_names : [
+      "/sso/users/${user_name}/given_name",
+      "/sso/users/${user_name}/family_name",
+      "/sso/users/${user_name}/email",
+    ]
+  ]))
+
+  # ループ中の現在のパス（例: "/sso/users/taro.yamada/email"）をnameに設定
+  name = each.key
+}
 
 locals {
-  # 読み込んだSSOインスタンスのARNをローカル変数に格納
-  # one()関数は、リストの要素が一つだけであることを保証し、その要素を返す安全な方法
-  sso_instance_arn  = one(data.aws_ssoadmin_instances.admin_sso_instances.arns)
-  identity_store_id = tolist(data.aws_ssoadmin_instances.admin_sso_instances.identity_store_ids)[0]
+  # 現在のリージョンに存在するSSOインスタンスのARN
+  sso_instance_arn  = one(data.aws_ssoadmin_instances.sso_instances.arns)
+  # ユーザーやグループが格納されているIdentity Storeの一意なID
+  identity_store_id = tolist(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)[0]
+  # パラメータストアの全リスト
+  sso_users_data = {
+    for user_name in var.sso_user_names : user_name => {
+      given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/given_name"].value
+      family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/family_name"].value
+      email       = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/email"].value
+    }
+  }
 }
 
 # 組織管理用許可セット
-resource "aws_ssoadmin_permission_set" "admin_ssopermsets_administrator" {
+resource "aws_ssoadmin_permission_set" "ssopermsets_administrator" {
   name                = "${var.project_name}-${var.env}-ssopermsets-admin"
   description         = "Permission set for administrators"
   instance_arn        = local.sso_instance_arn
   session_duration    = "PT4H" # 4時間
 }
 
-resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_administrator_policy" {
-  instance_arn       = aws_ssoadmin_permission_set.admin_ssopermsets_administrator.instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.admin_ssopermsets_administrator.arn
+resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_policy" {
+  instance_arn       = aws_ssoadmin_permission_set.ssopermsets_administrator.instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_administrator.arn
   managed_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
 # 開発者用許可セット
-resource "aws_ssoadmin_permission_set" "admin_ssopermsets_developer" {
+resource "aws_ssoadmin_permission_set" "ssopermsets_developer" {
   name                = "${var.project_name}-${var.env}-ssopermsets-developer"
   description         = "Permission set for developers"
   instance_arn        = local.sso_instance_arn
   session_duration    = "PT8H" # 4時間
 }
 
-resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_developer_policy" {
-  instance_arn       = aws_ssoadmin_permission_set.admin_ssopermsets_developer.instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.admin_ssopermsets_developer.arn
+resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_developer_policy" {
+  instance_arn       = aws_ssoadmin_permission_set.ssopermsets_developer.instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_developer.arn
   managed_policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
 }
 
@@ -41,30 +62,31 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_developer_p
 #-------------------------------------------------
 
 # 管理者グループ
-resource "aws_identitystore_group" "admin_identity_group_administrators" {
+resource "aws_identitystore_group" "identity_group_administrators" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-administrators"
   description       = "Administrators group"
-  depends_on        = [aws_organizations_organization.admin_org] 
+  depends_on        = [aws_organizations_organization.org] 
 
 }
 
 # 開発者グループ
-resource "aws_identitystore_group" "admin_identity_group_developers" {
+resource "aws_identitystore_group" "identity_group_developers" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-developers"
   description       = "Developers group"
-  depends_on        = [aws_organizations_organization.admin_org] 
+  depends_on        = [aws_organizations_organization.org] 
 }
 
 # ユーザーの作成
-resource "aws_identitystore_user" "admin_identity_user_admin" {
-  for_each = var.sso_users
+resource "aws_identitystore_user" "identity_user_admin" {
+  for_each = local.sso_users_data
   identity_store_id = local.identity_store_id
-
-  # マップのキー (e.g., "taro.yamada@example.com") を user_name に設定
-  user_name    = each.key 
-  display_name = each.value.display_name
+  
+  # each.key はユーザー名 (例: "taro.yamada")
+  # each.value はそのユーザーの情報オブジェクト (例: {given_name="Taro", ...})
+  user_name    = "${each.value.given_name}.${each.value.family_name}"
+  display_name = "${each.value.given_name}.${each.value.family_name}"
 
   name {
     given_name  = each.value.given_name
@@ -76,22 +98,6 @@ resource "aws_identitystore_user" "admin_identity_user_admin" {
     primary = true
   }
 }
-
-# resource "aws_identitystore_user" "user_b" {
-#   identity_store_id = local.identity_store_id
-#   display_name      = "Hanako Suzuki"
-#   user_name         = "hanako.suzuki@example.com"
-
-#   name {
-#     given_name  = "Hanako"
-#     family_name = "Suzuki"
-#   }
-
-#   emails {
-#     value   = "hanako.suzuki@example.com"
-#     primary = true
-#   }
-# }
 
 # # ユーザーをグループに追加
 # resource "aws_identitystore_group_membership" "admin_membership" {
