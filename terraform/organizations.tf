@@ -38,101 +38,101 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
 # }
 
 # リージョン制約ポリシー
-# resource "aws_organizations_policy" "org_policy_region_restriction" {
-#   name    = "${var.project_name}-${var.env}-orgpolicy-block-region"
-#   content = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Sid      = "DenyRegionalServicesOutsideAllowedRegion",
-#         Effect   = "Deny",
-#         NotAction = [
-#           # ローバルサービスについては、リージョン制限対象から除外する。
-#           "iam:*",
-#           "organizations:*",
-#           "route53:*",
-#           "route53domains:*",
-#           "cloudfront:*",
-#           "sts:*",
-#           "a4b:*",
-#           "acm:*",
-#           "aws-marketplace-management:*",
-#           "aws-portal:*",
-#           "budgets:*",
-#           "ce:*",
-#           "directconnect:*",
-#           "ec2:DescribeRegions", # マネジメントコンソールでのリージョン一覧表示に必要
-#           "globalaccelerator:*",
-#           "health:*",
-#           "importexport:*",
-#           "shield:*",
-#           "support:*",
-#           "trustedadvisor:*",
-#           "waf:*",
-#           "waf-regional:*",
-#           "wafv2:*"
-#         ],
-#         Resource = "*",
-#         Condition = {
-#           StringNotEquals = {
-#             "aws:RequestedRegion" = [
-#               "ap-northeast-1"
-#             ]
-#           }
-#         }
-#       }
-#     ]
-#   })
-#   depends_on = [aws_organizations_organization.org] 
-# }
+resource "aws_organizations_policy" "org_policy_region_restriction" {
+  name    = "${var.project_name}-${var.env}-orgpolicy-block-region"
+  content = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid      = "DenyRegionalServicesOutsideAllowedRegion",
+        Effect   = "Deny",
+        NotAction = [
+          # ローバルサービスについては、リージョン制限対象から除外する。
+          "iam:*",
+          "organizations:*",
+          "route53:*",
+          "route53domains:*",
+          "cloudfront:*",
+          "sts:*",
+          "a4b:*",
+          "acm:*",
+          "aws-marketplace-management:*",
+          "aws-portal:*",
+          "budgets:*",
+          "ce:*",
+          "directconnect:*",
+          "ec2:DescribeRegions", # マネジメントコンソールでのリージョン一覧表示に必要
+          "globalaccelerator:*",
+          "health:*",
+          "importexport:*",
+          "shield:*",
+          "support:*",
+          "trustedadvisor:*",
+          "waf:*",
+          "waf-regional:*",
+          "wafv2:*"
+        ],
+        Resource = "*",
+        Condition = {
+          StringNotEquals = {
+            "aws:RequestedRegion" = [
+              "ap-northeast-1"
+            ]
+          }
+        }
+      }
+    ]
+  })
+  depends_on = [aws_organizations_organization.org] 
+}
 
-# # ルートユーザーの操作をブロックするポリシー
-# resource "aws_organizations_policy" "org_policy_block_root" {
-#   name = "${var.project_name}-${var.env}-orgpolicy-deny-root"
-#   content = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect   = "Deny",
-#         Action   = "*",
-#         Resource = "*",
-#         Condition = {
-#           StringLike = {
-#             "aws:PrincipalArn" = "arn:aws:iam::*:root"
-#           }
-#         }
-#       }
-#     ]
-#   })
-#   depends_on = [aws_organizations_organization.org] 
-# }
+# ルートユーザーの操作をブロックするポリシー
+resource "aws_organizations_policy" "org_policy_block_root" {
+  name = "${var.project_name}-${var.env}-orgpolicy-deny-root"
+  content = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Deny",
+        Action   = "*",
+        Resource = "*",
+        Condition = {
+          StringLike = {
+            "aws:PrincipalArn" = "arn:aws:iam::*:root"
+          }
+        }
+      }
+    ]
+  })
+  depends_on = [aws_organizations_organization.org] 
+}
 
-# # ガバナンス保護ポリシー
-# resource "aws_organizations_policy" "org_policy_governance" {
-#   name = "${var.project_name}-${var.env}-orgpolicy-protect-governance"
-#   content = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect   = "Deny",
-#         Action = [
-#           "organizations:LeaveOrganization",
-#           "organizations:DeleteOrganization",
-#           "organizations:RemoveAccountFromOrganization"
-#         ],
-#         Resource = "*",
-#         Condition = {
-#           # 例: 特定の管理ロール以外からの操作を拒否
-#           # このように他のリソースのARNを参照できます
-#           ArnNotEquals = {
-#             # "aws:PrincipalArn" = aws_iam_role.organization_admin.arn
-#           }
-#         }
-#       }
-#     ]
-#   })
-#   depends_on = [aws_organizations_organization.org] 
-# }
+# ガバナンス保護ポリシー
+resource "aws_organizations_policy" "org_policy_governance" {
+  name = "${var.project_name}-${var.env}-orgpolicy-protect-governance"
+  content = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Deny",
+        Action = [
+          "organizations:LeaveOrganization",
+          "organizations:DeleteOrganization",
+          "organizations:RemoveAccountFromOrganization"
+        ],
+        Resource = "*",
+        Condition = {
+          # 例: 特定の管理ロール以外からの操作を拒否
+          # このように他のリソースのARNを参照できます
+          ArnNotEquals = {
+            # "aws:PrincipalArn" = aws_iam_role.organization_admin.arn
+          }
+        }
+      }
+    ]
+  })
+  depends_on = [aws_organizations_organization.org] 
+}
 
 # ポリシーをルートにアタッチ
 # resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
