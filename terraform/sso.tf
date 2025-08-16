@@ -207,11 +207,11 @@ resource "aws_ssoadmin_account_assignment" "admin_account" {
 resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
   for_each = toset([
     aws_identitystore_group.identity_group_administrators.group_id,
-    aws_identitystore_group.identity_group_developers.group_id,
+    aws_identitystore_group.identity_group_prd_developers.group_id,
   ])
 
   instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_developer.arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
   
   principal_id   = each.key
   principal_type = "GROUP"
@@ -226,14 +226,14 @@ resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
   # 割り当てるプリンシパル（グループ）をリストで定義
   principals = [
     aws_identitystore_group.identity_group_administrators.group_id,
-    aws_identitystore_group.dev_developer_members.group_id,
+    aws_identitystore_group.identity_group_dev_developers.group_id,
   ]
 
   # for_eachで、上記リストをループ処理
   for_each = toset(local.principals)
 
   instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_developer.arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
   
   principal_id   = each.key
   principal_type = "GROUP"
