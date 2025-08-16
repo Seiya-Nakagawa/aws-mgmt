@@ -104,35 +104,27 @@ resource "aws_identitystore_user" "identity_user_admin" {
 
 # ユーザーをグループに追加
 resource "aws_identitystore_group_membership" "admin_members" {
-  # groupが "administrators" のユーザーだけを対象にリソースを作成
-  for_each = {
-    for user_id, user_data in local.sso_users_data : nonsensitive(user_id) => user_data
+  for_each = nonsensitive({
+    for user_id, user_data in local.sso_users_data : user_id => user_data
     if user_data.group == "administrators"
-  }
+  })
 
   identity_store_id = local.identity_store_id
-  
-  # どのグループに追加するかを指定
-  group_id = aws_identitystore_group.identity_group_administrators.group_id
-  
-  # どのユーザーを追加するかを指定
-  # aws_identitystore_user.identity_user_adminリソースの中から、現在のループのキー(user_id)に一致するユーザーのIDを参照
-  member_id = aws_identitystore_user.identity_user_admin[each.key].user_id
+  group_id          = aws_identitystore_group.identity_group_administrators.group_id
+  member_id         = aws_identitystore_user.identity_user_admin[each.key].user_id
 }
 
 # 開発者グループのメンバーシップを作成
 resource "aws_identitystore_group_membership" "developer_members" {
-  # for_each で全ユーザーをループし、groupが "developers" のユーザーだけを対象にリソースを作成
-  for_each = {
-    for user_id, user_data in local.sso_users_data : nonsensitive(user_id) => user_data
+  for_each = nonsensitive({
+    for user_id, user_data in local.sso_users_data : user_id => user_data
     if user_data.group == "developers"
-  }
+  })
 
   identity_store_id = local.identity_store_id
   group_id          = aws_identitystore_group.identity_group_developers.group_id
   member_id         = aws_identitystore_user.identity_user_admin[each.key].user_id
 }
-
 
 # #-------------------------------------------------
 # # アカウント割り当て (Account Assignments)
