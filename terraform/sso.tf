@@ -27,7 +27,7 @@ locals {
       given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/given_name"].value
       family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/family_name"].value
       email       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/email"].value
-      group       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/group"].valu
+      group       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/group"].value
     }
   }
 }
