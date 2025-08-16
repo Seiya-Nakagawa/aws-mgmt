@@ -10,7 +10,7 @@ locals {
 
 # 組織管理用許可セット
 resource "aws_ssoadmin_permission_set" "admin_ssopermsets_administrator" {
-  name             = "${var.project_name}-${var.env}-ssopermsets-administrator"
+  name             = "${var.project_name}-${var.env}-ssopermsets-admin"
   description      = "組織管理者権限"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT4H" # 4時間
