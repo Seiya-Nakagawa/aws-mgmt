@@ -21,13 +21,13 @@ data "aws_ssm_parameter" "user_params" {
 # 現在のAWS認証情報に基づき、アカウントID、ユーザーID、ARNを取得するデータソース
 data "aws_caller_identity" "caller_identity" {}
 
-# 本番OU (Production) に所属する全メンバーアカウントの情報を取得
-data "aws_organizations_organizational_unit_child_accounts" "production" {
+# 本番OU に所属する全メンバーアカウントの情報を取得
+data "aws_organizations_organizational_unit_child_accounts" "prd_accounts_list" {
   parent_id = aws_organizations_organizational_unit.ou_prd.id
 }
 
-# 開発OU (Development) に所属する全メンバーアカウントの情報を取得
-data "aws_organizations_organizational_unit_child_accounts" "development" {
+# 開発OUに所属する全メンバーアカウントの情報を取得
+data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" {
   parent_id = aws_organizations_organizational_unit.ou_dev.id
 }
 
@@ -217,7 +217,7 @@ resource "aws_ssoadmin_account_assignment" "admin_account" {
 resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
   for_each = {
-    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.ou_prd.accounts : acc.id] :
+    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.prd_accounts_list.accounts : acc.id] :
     "${aws_identitystore_group.identity_group_prd_developers.group_id}-${account_id}" => {
       group_id    = aws_identitystore_group.identity_group_prd_developers.group_id
       account_id  = account_id
@@ -239,7 +239,7 @@ resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
 resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
   for_each = {
-    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.ou_dev.accounts : acc.id] :
+    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.dev_accounts_list.accounts : acc.id] :
     "${aws_identitystore_group.identity_group_dev_developers.group_id}-${account_id}" => {
       group_id    = aws_identitystore_group.identity_group_dev_developers.group_id
       account_id  = account_id
