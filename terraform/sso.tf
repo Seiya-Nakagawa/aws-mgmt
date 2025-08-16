@@ -56,7 +56,7 @@ locals {
 
 # 組織管理用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_administrator" {
-  name             = "${var.system_name}-${var.env}-ssopermsets-admin"
+  name             = "${var.system_name}-${var.env}-ps-admin"
   description      = "Permission set for administrators"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT4H" # 4時間
@@ -70,7 +70,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_pol
 
 # 開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
-  name             = "${var.system_name}-${var.env}-ssopermsets-prd-developer"
+  name             = "${var.system_name}-${var.env}-ps-prd-developer"
   description      = "Permission set for developers"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
@@ -90,7 +90,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_prd_developer_iam
 
 # 開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
-  name             = "${var.system_name}-${var.env}-ssopermsets-dev-developer"
+  name             = "${var.system_name}-${var.env}-ps-dev-developer"
   description      = "Permission set for developers"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
