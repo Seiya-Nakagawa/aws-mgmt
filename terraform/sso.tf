@@ -41,14 +41,14 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_developer_p
 #-------------------------------------------------
 
 # 管理者グループ
-resource "aws_identitystore_group" "administrators" {
+resource "aws_identitystore_group" "admin_identity_group_administrators" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-administrators"
   description       = "Administrators group"
 }
 
 # 開発者グループ
-resource "aws_identitystore_group" "developers" {
+resource "aws_identitystore_group" "admin_identity_group_developers" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-developers"
   description       = "Developers group"
