@@ -1,8 +1,4 @@
-# ----------------------------------------------------------------
-# Service: AWS Organizations
-# ----------------------------------------------------------------
-
-# AWS Organizationsの設定を管理します。
+# AWS Organizationsの設定
 resource "aws_organizations_organization" "admin_org" {
   # この設定により、SCPやタグポリシーなど全ての機能が利用可能になります
   feature_set = "ALL"
