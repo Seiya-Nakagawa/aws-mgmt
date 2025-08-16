@@ -9,6 +9,7 @@ data "aws_ssm_parameter" "user_params" {
       "/sso/users/${user_id}/given_name",
       "/sso/users/${user_id}/family_name",
       "/sso/users/${user_id}/email",
+      "/sso/users/${user_id}/group",
     ]
   ]))
   name = each.key
@@ -26,6 +27,7 @@ locals {
       given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/given_name"].value
       family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/family_name"].value
       email       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/email"].value
+      group       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/group"].valu
     }
   }
 }
