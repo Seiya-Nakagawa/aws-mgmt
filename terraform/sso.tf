@@ -40,18 +40,18 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_developer_p
 #-------------------------------------------------
 
 # 管理者グループ
-# resource "aws_identitystore_group" "administrators" {
-#   identity_store_id = local.identity_store_id
-#   display_name      = "${var.project_name}-${var.env}-administrators"
-#   description       = "Administrators group"
-# }
+resource "aws_identitystore_group" "administrators" {
+  identity_store_id = local.identity_store_id
+  display_name      = "${var.project_name}-${var.env}-administrators"
+  description       = "Administrators group"
+}
 
-# # 開発者グループ
-# resource "aws_identitystore_group" "developers" {
-#   identity_store_id = local.identity_store_id
-#   display_name      = "${var.project_name}-${var.env}-developers"
-#   description       = "Developers group"
-# }
+# 開発者グループ
+resource "aws_identitystore_group" "developers" {
+  identity_store_id = local.identity_store_id
+  display_name      = "${var.project_name}-${var.env}-developers"
+  description       = "Developers group"
+}
 
 # # ユーザーの作成 (例)
 # resource "aws_identitystore_user" "user_a" {
