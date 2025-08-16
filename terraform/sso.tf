@@ -236,7 +236,7 @@ resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
 
 
 # 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
-resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
+resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
   for_each = {
     for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.ou_dev.accounts : acc.id] :
