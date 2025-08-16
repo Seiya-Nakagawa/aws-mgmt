@@ -18,3 +18,10 @@ variable "sso_user_ids" {
   description = "管理対象ユーザーリスト"
   default     = []
 }
+
+
+
+# debug用の変数
+output "debug_sso_users_data" {
+  value = local.sso_users_data
+}
