@@ -21,6 +21,16 @@ data "aws_ssm_parameter" "user_params" {
 # 現在のAWS認証情報に基づき、アカウントID、ユーザーID、ARNを取得するデータソース
 data "aws_caller_identity" "caller_identity" {}
 
+# 本番OU (Production) に所属する全メンバーアカウントの情報を取得
+data "aws_organizations_organizational_unit_child_accounts" "production" {
+  parent_id = aws_organizations_organizational_unit.ou_prd.id
+}
+
+# 開発OU (Development) に所属する全メンバーアカウントの情報を取得
+data "aws_organizations_organizational_unit_child_accounts" "development" {
+  parent_id = aws_organizations_organizational_unit.ou_dev.id
+}
+
 #-------------------------------------------------
 # ローカル変数 (Locals)
 #-------------------------------------------------
@@ -118,7 +128,7 @@ resource "aws_identitystore_group" "identity_group_prd_developers" {
 }
 
 # 開発者グループ
-resource "aws_identitystore_group" "identity_group_developers" {
+resource "aws_identitystore_group" "identity_group_dev_developers" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.system_name}-${var.env}-group-dev-developers"
   description       = "Developers group"
@@ -203,41 +213,45 @@ resource "aws_ssoadmin_account_assignment" "admin_account" {
 }
 
 
-# 本番環境の開発者グループを本番OUに割り当て
+# 本番環境の開発者グループを本番の全メンバーアカウントに割り当て
 resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
-  for_each = toset([
-    aws_identitystore_group.identity_group_administrators.group_id,
-    aws_identitystore_group.identity_group_prd_developers.group_id,
-  ])
+  # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
+  for_each = {
+    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.ou_prd.accounts : acc.id] :
+    "${aws_identitystore_group.identity_group_prd_developers.group_id}-${account_id}" => {
+      group_id    = aws_identitystore_group.identity_group_prd_developers.group_id
+      account_id  = account_id
+    }
+  }
 
   instance_arn       = local.sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
   
-  principal_id   = each.key
+  principal_id   = each.value.group_id
   principal_type = "GROUP"
 
-  target_id   = aws_organizations_organizational_unit.ou_prd.id
-  target_type = "AWS_OU"
+  target_id   = each.value.account_id
+  target_type = "AWS_ACCOUNT"
 }
 
 
-# 開発環境の開発者グループを開発OUに割り当て
-resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
-  # 割り当てるプリンシパル（グループ）をリストで定義
-  principals = [
-    aws_identitystore_group.identity_group_administrators.group_id,
-    aws_identitystore_group.identity_group_dev_developers.group_id,
-  ]
-
-  # for_eachで、上記リストをループ処理
-  for_each = toset(local.principals)
+# 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
+resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
+  # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
+  for_each = {
+    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.ou_dev.accounts : acc.id] :
+    "${aws_identitystore_group.identity_group_dev_developers.group_id}-${account_id}" => {
+      group_id    = aws_identitystore_group.identity_group_dev_developers.group_id
+      account_id  = account_id
+    }
+  }
 
   instance_arn       = local.sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
   
-  principal_id   = each.key
+  principal_id   = each.value.group_id
   principal_type = "GROUP"
 
-  target_id   = aws_organizations_organizational_unit.ou_dev.id
-  target_type = "AWS_OU"
+  target_id   = each.value.account_id
+  target_type = "AWS_ACCOUNT"
 }
