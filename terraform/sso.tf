@@ -64,7 +64,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_developer_policy"
 # 管理者グループ
 resource "aws_identitystore_group" "identity_group_administrators" {
   identity_store_id = local.identity_store_id
-  display_name      = "${var.project_name}-${var.env}-administrators"
+  display_name      = "${var.project_name}-${var.env}-group-administrators"
   description       = "Administrators group"
   depends_on        = [aws_organizations_organization.org] 
 
@@ -73,7 +73,7 @@ resource "aws_identitystore_group" "identity_group_administrators" {
 # 開発者グループ
 resource "aws_identitystore_group" "identity_group_developers" {
   identity_store_id = local.identity_store_id
-  display_name      = "${var.project_name}-${var.env}-developers"
+  display_name      = "${var.project_name}-${var.env}-group-developers"
   description       = "Developers group"
   depends_on        = [aws_organizations_organization.org] 
 }
