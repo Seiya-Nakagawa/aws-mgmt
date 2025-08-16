@@ -13,8 +13,8 @@ variable "env" {
   type        = string
 }
 
-variable "sso_user_names" {
+variable "sso_user_ids" {
   type        = list(string)
-  description = "IAM Identity Centerで管理するユーザーのログイン名（@より前の部分）のリスト。このリストを元にSSMから情報を取得します。"
-  default     = [] # デフォルトは空のリスト
+  description = "管理対象ユーザーリスト"
+  default     = []
 }

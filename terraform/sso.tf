@@ -3,14 +3,14 @@ data "aws_ssoadmin_instances" "sso_instances" {}
 
 data "aws_ssm_parameter" "user_params" {
   for_each = toset(flatten([
-    for user_name in var.sso_user_names : [
-      "/sso/users/${user_name}/given_name",
-      "/sso/users/${user_name}/family_name",
-      "/sso/users/${user_name}/email",
+    # var.sso_user_ids をループ
+    for user_id in var.sso_user_ids : [
+      # パスに user_id を使用
+      "/sso/users/${user_id}/given_name",
+      "/sso/users/${user_id}/family_name",
+      "/sso/users/${user_id}/email",
     ]
   ]))
-
-  # ループ中の現在のパス（例: "/sso/users/taro.yamada/email"）をnameに設定
   name = each.key
 }
 
@@ -21,10 +21,11 @@ locals {
   identity_store_id = tolist(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)[0]
   # パラメータストアの全リスト
   sso_users_data = {
-    for user_name in var.sso_user_names : user_name => {
-      given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/given_name"].value
-      family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/family_name"].value
-      email       = data.aws_ssm_parameter.user_params["/sso/users/${user_name}/email"].value
+    # var.sso_user_ids をループ
+    for user_id in var.sso_user_ids : user_id => {
+      given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/given_name"].value
+      family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/family_name"].value
+      email       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/email"].value
     }
   }
 }
