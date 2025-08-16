@@ -45,6 +45,8 @@ resource "aws_identitystore_group" "admin_identity_group_administrators" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-administrators"
   description       = "Administrators group"
+  depends_on        = [aws_organizations_organization.admin_org] 
+
 }
 
 # 開発者グループ
@@ -52,6 +54,7 @@ resource "aws_identitystore_group" "admin_identity_group_developers" {
   identity_store_id = local.identity_store_id
   display_name      = "${var.project_name}-${var.env}-developers"
   description       = "Developers group"
+  depends_on        = [aws_organizations_organization.admin_org] 
 }
 
 # # ユーザーの作成 (例)

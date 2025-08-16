@@ -10,7 +10,8 @@ resource "aws_organizations_organization" "admin_org" {
 
   aws_service_access_principals = [
     "sso.amazonaws.com",
-    "cloudtrail.amazonaws.com"
+    "cloudtrail.amazonaws.com",
+    "iam.amazonaws.com"
   ]
 }
 
