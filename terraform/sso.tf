@@ -85,7 +85,7 @@ resource "aws_identitystore_user" "identity_user_admin" {
   
   # each.key はユーザー名 (例: "taro.yamada")
   # each.value はそのユーザーの情報オブジェクト (例: {given_name="Taro", ...})
-  user_name    = "${each.value.given_name}.${each.value.family_name}"
+  user_name    = each.value.email
   display_name = "${each.value.given_name}.${each.value.family_name}"
 
   name {
