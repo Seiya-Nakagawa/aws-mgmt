@@ -82,6 +82,7 @@ resource "aws_organizations_policy" "admin_orgpolicy_region_restriction" {
       }
     ]
   })
+  depends_on = [aws_organizations_organization.main] 
 }
 
 # ルートユーザーの操作をブロックするポリシー
@@ -102,6 +103,7 @@ resource "aws_organizations_policy" "admin_orgpolicy_block_root" {
       }
     ]
   })
+  depends_on = [aws_organizations_organization.main] 
 }
 
 # ガバナンス保護ポリシー
@@ -128,6 +130,7 @@ resource "aws_organizations_policy" "admin_orgpolicy_governance" {
       }
     ]
   })
+  depends_on = [aws_organizations_organization.main] 
 }
 
 # ポリシーをルートにアタッチ
