@@ -13,7 +13,6 @@ resource "aws_organizations_organization" "admin_org" {
   ]
 }
 
-
 # 本番用OU
 resource "aws_organizations_organizational_unit" "admin_ou_prd" {
   name      = "${var.project_name}-${var.env}-ou-prd"
@@ -134,12 +133,12 @@ resource "aws_organizations_policy" "admin_orgpolicy_governance" {
 }
 
 # ポリシーをルートにアタッチ
-resource "aws_organizations_policy_attachment" "admin_orgpolicy_attach_root" {
-  for_each = {
-    region_restriction = aws_organizations_policy.admin_orgpolicy_region_restriction.id
-    block_root_user    = aws_organizations_policy.admin_orgpolicy_block_root.id
-    protect_governance = aws_organizations_policy.admin_orgpolicy_governance.id
-  }
-  policy_id = each.value
-  target_id = aws_organizations_organization.admin_org.roots[0].id
-}
+# resource "aws_organizations_policy_attachment" "admin_orgpolicy_attach_root" {
+#   for_each = {
+#     region_restriction = aws_organizations_policy.admin_orgpolicy_region_restriction.id
+#     block_root_user    = aws_organizations_policy.admin_orgpolicy_block_root.id
+#     protect_governance = aws_organizations_policy.admin_orgpolicy_governance.id
+#   }
+#   policy_id = each.value
+#   target_id = aws_organizations_organization.admin_org.roots[0].id
+# }
