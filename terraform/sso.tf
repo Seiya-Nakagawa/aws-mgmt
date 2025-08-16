@@ -10,10 +10,10 @@ locals {
 
 # 組織管理用許可セット
 resource "aws_ssoadmin_permission_set" "admin_ssopermsets_administrator" {
-  name             = "${var.project_name}-${var.env}-ssopermsets-admin"
-  description      = "組織管理者権限"
-  instance_arn     = local.sso_instance_arn
-  session_duration = "PT4H" # 4時間
+  name                = "${var.project_name}-${var.env}-ssopermsets-admin"
+  description         = "Permission set for administrators"
+  instance_arn        = local.sso_instance_arn
+  session_duration    = "PT4H" # 4時間
 }
 
 resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_administrator_policy" {
@@ -25,7 +25,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_administrat
 # 開発者用許可セット
 resource "aws_ssoadmin_permission_set" "admin_ssopermsets_developer" {
   name             = "${var.project_name}-${var.env}-ssopermsets-developer"
-  description      = "開発者用権限"
+  description      = "Permission set for developers"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 4時間
 }
