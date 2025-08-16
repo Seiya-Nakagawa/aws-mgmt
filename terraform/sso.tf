@@ -24,10 +24,10 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_administrat
 
 # 開発者用許可セット
 resource "aws_ssoadmin_permission_set" "admin_ssopermsets_developer" {
-  name             = "${var.project_name}-${var.env}-ssopermsets-developer"
-  description      = "Permission set for developers"
-  instance_arn     = local.sso_instance_arn
-  session_duration = "PT8H" # 4時間
+  name                = "${var.project_name}-${var.env}-ssopermsets-developer"
+  description         = "Permission set for developers"
+  instance_arn        = local.sso_instance_arn
+  session_duration    = "PT8H" # 4時間
 }
 
 resource "aws_ssoadmin_managed_policy_attachment" "admin_ssopermsets_developer_policy" {
@@ -57,22 +57,25 @@ resource "aws_identitystore_group" "admin_identity_group_developers" {
   depends_on        = [aws_organizations_organization.admin_org] 
 }
 
-# # ユーザーの作成 (例)
-# resource "aws_identitystore_user" "user_a" {
-#   identity_store_id = local.identity_store_id
-#   display_name      = "Taro Yamada"
-#   user_name         = "taro.yamada@example.com" # ログイン時のユーザー名
+# ユーザーの作成
+resource "aws_identitystore_user" "admin_identity_user_admin" {
+  for_each = var.sso_users
+  identity_store_id = local.identity_store_id
 
-#   name {
-#     given_name  = "Taro"
-#     family_name = "Yamada"
-#   }
+  # マップのキー (e.g., "taro.yamada@example.com") を user_name に設定
+  user_name    = each.key 
+  display_name = each.value.display_name
 
-#   emails {
-#     value   = "taro.yamada@example.com" # 通知などが送信されるメールアドレス
-#     primary = true
-#   }
-# }
+  name {
+    given_name  = each.value.given_name
+    family_name = each.value.family_name
+  }
+
+  emails {
+    value   = each.value.email
+    primary = true
+  }
+}
 
 # resource "aws_identitystore_user" "user_b" {
 #   identity_store_id = local.identity_store_id
