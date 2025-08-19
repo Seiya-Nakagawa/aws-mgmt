@@ -1,54 +1,7 @@
 #-------------------------------------------------
-# データソース (Data Sources)
-#-------------------------------------------------
-
-# 手動で有効化したIAM Identity Centerインスタンスの情報を取得
-data "aws_ssoadmin_instances" "sso_instances" {}
-
-# var.sso_user_idsを元に、SSMから全ユーザー情報を一括で読み取る
-data "aws_ssm_parameter" "user_params" {
-  for_each = toset(flatten([
-    for user_id in var.sso_user_ids : [
-      "/sso/users/${user_id}/given_name",
-      "/sso/users/${user_id}/family_name",
-      "/sso/users/${user_id}/email",
-      "/sso/users/${user_id}/group",
-    ]
-  ]))
-  name = each.key
-}
-
-# 現在のAWS認証情報に基づき、アカウントID、ユーザーID、ARNを取得するデータソース
-data "aws_caller_identity" "caller_identity" {}
-
-# 本番OU に所属する全メンバーアカウントの情報を取得
-data "aws_organizations_organizational_unit_child_accounts" "prd_accounts_list" {
-  parent_id = aws_organizations_organizational_unit.ou_prd.id
-}
-
-# 開発OUに所属する全メンバーアカウントの情報を取得
-data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" {
-  parent_id = aws_organizations_organizational_unit.ou_dev.id
-}
-
-#-------------------------------------------------
 # ローカル変数 (Locals)
 #-------------------------------------------------
-locals {
-  # SSOインスタンスのARNとIdentity Store IDを抽出
-  sso_instance_arn  = one(data.aws_ssoadmin_instances.sso_instances.arns)
-  identity_store_id = one(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)
 
-  # SSMから取得した値を、ユーザーごとに使いやすいマップ形式に再構成
-  sso_users_data = {
-    for user_id in var.sso_user_ids : user_id => {
-      given_name  = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/given_name"].value
-      family_name = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/family_name"].value
-      email       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/email"].value
-      group       = data.aws_ssm_parameter.user_params["/sso/users/${user_id}/group"].value
-    }
-  }
-}
 
 #-------------------------------------------------
 # 許可セット (Permission Sets)
@@ -235,23 +188,23 @@ resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
 }
 
 
-# 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
-resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
-  # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
-  for_each = {
-    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.dev_accounts_list.accounts : acc.id] :
-    "${aws_identitystore_group.identity_group_dev_developers.group_id}-${account_id}" => {
-      group_id    = aws_identitystore_group.identity_group_dev_developers.group_id
-      account_id  = account_id
-    }
-  }
+# # 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
+# resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
+#   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
+#   for_each = {
+#     for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.dev_accounts_list.accounts : acc.id] :
+#     "${aws_identitystore_group.identity_group_dev_developers.group_id}-${account_id}" => {
+#       group_id    = aws_identitystore_group.identity_group_dev_developers.group_id
+#       account_id  = account_id
+#     }
+#   }
 
-  instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
+#   instance_arn       = local.sso_instance_arn
+#   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
   
-  principal_id   = each.value.group_id
-  principal_type = "GROUP"
+#   principal_id   = each.value.group_id
+#   principal_type = "GROUP"
 
-  target_id   = each.value.account_id
-  target_type = "AWS_ACCOUNT"
-}
+#   target_id   = each.value.account_id
+#   target_type = "AWS_ACCOUNT"
+# }
