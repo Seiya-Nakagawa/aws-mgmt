@@ -19,12 +19,26 @@ resource "aws_organizations_organization" "org" {
 resource "aws_organizations_organizational_unit" "ou_prd" {
   name      = "${var.system_name}-${var.env}-ou-prd"
   parent_id = aws_organizations_organization.org.roots[0].id
+
+  tags = {
+    Name        = "${var.system_name}-${var.env}-ou-prd",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
 }
 
 # 開発用OU
 resource "aws_organizations_organizational_unit" "ou_dev" {
   name      = "${var.system_name}-${var.env}-ou-dev"
   parent_id = aws_organizations_organization.org.roots[0].id
+
+  tags = {
+    Name        = "${var.system_name}-${var.env}-ou-dev",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
 }
 
 # Todo:システム構築完了後に有効化
@@ -83,6 +97,13 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.system_name}-${var.env}-orgpolicy-block-region"
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
   depends_on = [aws_organizations_organization.org] 
 }
 
@@ -104,6 +125,13 @@ resource "aws_organizations_policy" "org_policy_block_root" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.system_name}-${var.env}-orgpolicy-deny-root",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
   depends_on = [aws_organizations_organization.org] 
 }
 
@@ -130,6 +158,13 @@ resource "aws_organizations_policy" "org_policy_governance" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.system_name}-${var.env}-orgpolicy-protect-governance",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
   depends_on = [aws_organizations_organization.org] 
 }
 
@@ -139,7 +174,7 @@ resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
     region_restriction = aws_organizations_policy.org_policy_region_restriction.id
     block_root_user    = aws_organizations_policy.org_policy_block_root.id
     protect_governance = aws_organizations_policy.org_policy_governance.id
-    tag                = aws_organizations_policy.org_policy_tag.id
+    # tag                = aws_organizations_policy.org_policy_tag.id
   }
   policy_id = each.value
   target_id = aws_organizations_organization.org.roots[0].id
