@@ -3,6 +3,9 @@ resource "aws_accessanalyzer_analyzer" "iamanaly" {
   type          = "ORGANIZATION" # アカウントのみを対象にする場合は "ACCOUNT" を指定
 
   tags = {
-    Name = var.analyzer_name
+    Name        = "${var.system_name}-${var.env}-iamanaly",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
   }
 }
