@@ -122,10 +122,9 @@ resource "aws_organizations_policy" "org_policy_governance" {
         ],
         Resource = "*",
         Condition = {
-          # 例: 特定の管理ロール以外からの操作を拒否
-          # このように他のリソースのARNを参照できます
-          ArnNotEquals = {
-            # "aws:PrincipalArn" = aws_iam_role.organization_admin.arn
+          # 管理アカウント以外は拒否
+          StringNotEquals = {
+            "aws:PrincipalAccount" = [data.aws_caller_identity.caller_identity.account_id]
           }
         }
       }
@@ -135,13 +134,13 @@ resource "aws_organizations_policy" "org_policy_governance" {
 }
 
 # ポリシーをルートにアタッチ
-# resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
-#   for_each = {
-#     region_restriction = aws_organizations_policy.org_policy_region_restriction.id
-#     block_root_user    = aws_organizations_policy.org_policy_block_root.id
-#     protect_governance = aws_organizations_policy.org_policy_governance.id
-#     tag                = aws_organizations_policy.org_policy_tag.id
-#   }
-#   policy_id = each.value
-#   target_id = aws_organizations_organization.org.roots[0].id
-# }
+resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
+  for_each = {
+    region_restriction = aws_organizations_policy.org_policy_region_restriction.id
+    block_root_user    = aws_organizations_policy.org_policy_block_root.id
+    protect_governance = aws_organizations_policy.org_policy_governance.id
+    tag                = aws_organizations_policy.org_policy_tag.id
+  }
+  policy_id = each.value
+  target_id = aws_organizations_organization.org.roots[0].id
+}
