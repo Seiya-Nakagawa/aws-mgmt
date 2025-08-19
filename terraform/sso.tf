@@ -1,18 +1,15 @@
-#-------------------------------------------------
-# ローカル変数 (Locals)
-#-------------------------------------------------
-
-
-#-------------------------------------------------
-# 許可セット (Permission Sets)
-#-------------------------------------------------
-
 # 組織管理用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_administrator" {
   name             = "${var.system_name}-${var.env}-ps-admin"
   description      = "Permission set for administrators"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT4H" # 4時間
+  tags = {
+    Name        = "${var.system_name}-${var.env}-ps-admin",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
 }
 
 resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_policy" {
@@ -27,6 +24,12 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
   description      = "Permission set for developers"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
+  tags = {
+    Name        = "${var.system_name}-${var.env}-ps-prd-developer",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
 }
 
 resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_prd_developer_poweruser" {
@@ -47,6 +50,12 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
   description      = "Permission set for developers"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
+  tags = {
+    Name        = "${var.system_name}-${var.env}-ps-dev-developer",
+    SystemName  = var.system_name,
+    Env         = var.env,
+    CreatedDate = timestamp()
+  }
 }
 
 resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_developer_policy" {
@@ -167,25 +176,25 @@ resource "aws_ssoadmin_account_assignment" "admin_account" {
 
 
 # 本番環境の開発者グループを本番の全メンバーアカウントに割り当て
-resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
-  # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
-  for_each = {
-    for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.prd_accounts_list.accounts : acc.id] :
-    "${aws_identitystore_group.identity_group_prd_developers.group_id}-${account_id}" => {
-      group_id    = aws_identitystore_group.identity_group_prd_developers.group_id
-      account_id  = account_id
-    }
-  }
+# resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
+#   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
+#   for_each = {
+#     for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.prd_accounts_list.accounts : acc.id] :
+#     "${aws_identitystore_group.identity_group_prd_developers.group_id}-${account_id}" => {
+#       group_id    = aws_identitystore_group.identity_group_prd_developers.group_id
+#       account_id  = account_id
+#     }
+#   }
 
-  instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
+#   instance_arn       = local.sso_instance_arn
+#   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
   
-  principal_id   = each.value.group_id
-  principal_type = "GROUP"
+#   principal_id   = each.value.group_id
+#   principal_type = "GROUP"
 
-  target_id   = each.value.account_id
-  target_type = "AWS_ACCOUNT"
-}
+#   target_id   = each.value.account_id
+#   target_type = "AWS_ACCOUNT"
+# }
 
 
 # # 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
