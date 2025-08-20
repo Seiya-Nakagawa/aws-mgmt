@@ -8,7 +8,6 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_administrator" {
     Name        = "${var.system_name}-${var.env}-ps-admin",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = terraform_data.creation_time.input
   }
 }
 
@@ -28,7 +27,7 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
     Name        = "${var.system_name}-${var.env}-ps-prd-developer",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = terraform_data.creation_time.input
+
   }
 }
 
@@ -54,7 +53,7 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
     Name        = "${var.system_name}-${var.env}-ps-dev-developer",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = terraform_data.creation_time.input
+
   }
 }
 
