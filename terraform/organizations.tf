@@ -12,6 +12,7 @@ resource "aws_organizations_organization" "org" {
     "sso.amazonaws.com",
     "cloudtrail.amazonaws.com",
     "access-analyzer.amazonaws.com",
+    "account.amazonaws.com",
   ]
 }
 
