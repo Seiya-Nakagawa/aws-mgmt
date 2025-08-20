@@ -12,7 +12,6 @@ resource "aws_organizations_organization" "org" {
     "sso.amazonaws.com",
     "cloudtrail.amazonaws.com",
     "access-analyzer.amazonaws.com",
-    "account.amazonaws.com",
   ]
 }
 
@@ -25,7 +24,7 @@ resource "aws_organizations_organizational_unit" "ou_prd" {
     Name        = "${var.system_name}-${var.env}-ou-prd",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
 }
 
@@ -38,7 +37,7 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
     Name        = "${var.system_name}-${var.env}-ou-dev",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
 }
 
@@ -103,7 +102,7 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
     Name        = "${var.system_name}-${var.env}-orgpolicy-block-region"
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
   depends_on = [aws_organizations_organization.org] 
 }
@@ -131,7 +130,7 @@ resource "aws_organizations_policy" "org_policy_block_root" {
     Name        = "${var.system_name}-${var.env}-orgpolicy-deny-root",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
   depends_on = [aws_organizations_organization.org] 
 }
@@ -164,7 +163,7 @@ resource "aws_organizations_policy" "org_policy_governance" {
     Name        = "${var.system_name}-${var.env}-orgpolicy-protect-governance",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
   depends_on = [aws_organizations_organization.org] 
 }

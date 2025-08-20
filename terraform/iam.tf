@@ -6,6 +6,6 @@ resource "aws_accessanalyzer_analyzer" "iamanaly" {
     Name        = "${var.system_name}-${var.env}-iamanaly",
     SystemName  = var.system_name,
     Env         = var.env,
-    CreatedDate = timestamp()
+    CreatedDate = terraform_data.creation_time.input
   }
 }
