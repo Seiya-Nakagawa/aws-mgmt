@@ -18,7 +18,7 @@
 #   arn       = aws_sns_topic.sns_topic_system.arn
 # }
 
-resource "aws_eventbridge_rule" "evbrule_accessanaly" {
+resource "aws_cloudwatch_event_rule" "evbrule_accessanaly" {
   name        = "${var.system_name}-${var.env}-evbrule-accessanaly"
   description = "Rule to notify when a new Access Analyzer finding is created"
 
@@ -34,7 +34,7 @@ resource "aws_eventbridge_rule" "evbrule_accessanaly" {
   }
 }
 
-resource "aws_eventbridge_target" "evbrule_target_sns_awschat" {
+resource "aws_cloudwatch_event_target" "evbrule_target_sns_awschat" {
   rule      = aws_eventbridge_rule.evbrule_accessanaly.name
   target_id = "SendToSNSTopic"
   arn       = aws_sns_topic.sns_topic_awschat.arn
