@@ -35,7 +35,7 @@ resource "aws_cloudwatch_event_rule" "evbrule_accessanaly" {
 }
 
 resource "aws_cloudwatch_event_target" "evbrule_target_sns_awschat" {
-  rule      = aws_eventbridge_rule.evbrule_accessanaly.name
+  rule      = aws_cloudwatch_event_rule.evbrule_accessanaly.name
   target_id = "SendToSNSTopic"
   arn       = aws_sns_topic.sns_topic_awschat.arn
 }

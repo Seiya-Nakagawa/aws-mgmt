@@ -24,12 +24,18 @@ variable "aws_account_id" {
   type        = string
 }
 
+# variable "slack_workspace_id" {
+#   description = "SlackワークスペースID"
+#   type        = string
+# }
+
+variable "slack_team_id" {
+  description = "SlackチームID"
+  type        = string
+}
+
 variable "slack_channel_id" {
   description = "SlackチャンネルID"
   type        = string
 }
 
-variable "slack_workspace_id" {
-  description = "SlackワークスペースID"
-  type        = string
-}
