@@ -7,7 +7,6 @@ resource "aws_chatbot_slack_channel_configuration" "chatbot_slack" {
   sns_topic_arns     = [aws_sns_topic.sns_topic_awschat.arn]
 
   # ログレベルを設定 (ERROR, INFO, NONE)
-  # INFOにするとChatbotの動作ログがCloudWatch Logsに出力されます
   logging_level = "ERROR" 
 
   depends_on = [aws_cloudwatch_log_group.loggroup_chatbot]
