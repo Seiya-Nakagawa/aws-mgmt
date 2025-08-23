@@ -55,7 +55,7 @@ data "aws_iam_policy_document" "sns_topic_policy_document_awschat" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceOwner"
-      values   = var.aws_account_id
+      values   = [var.aws_account_id]
     }
   }
 }
