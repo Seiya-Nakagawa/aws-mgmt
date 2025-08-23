@@ -26,3 +26,36 @@ data "aws_organizations_organizational_unit_child_accounts" "prd_accounts_list" 
 data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" {
   parent_id = aws_organizations_organizational_unit.ou_dev.id
 }
+
+# SNS用ポリシー定義
+data "aws_iam_policy_document" "sns_topic_policy_document_awschat" {
+  policy_id = "__default_policy_ID"
+
+  statement {
+    sid    = "__default_statement_ID"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "SNS:GetTopicAttributes",
+      "SNS:SetTopicAttributes",
+      "SNS:AddPermission",
+      "SNS:RemovePermission",
+      "SNS:DeleteTopic",
+      "SNS:Subscribe",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:Publish",
+      "SNS:Receive",
+    ]
+    resources = [
+      aws_sns_topic.sns_topic_awschat.arn,
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+      values   = var.aws_account_id
+    }
+  }
+}

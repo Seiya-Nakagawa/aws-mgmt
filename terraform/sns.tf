@@ -26,42 +26,12 @@ resource "aws_sns_topic" "sns_topic_awschat" {
   }
 }
 
-resource "aws_sns_topic_policy" "sns_topic_awschat_policy" {
+resource "aws_sns_topic_policy" "sns_topic_policy_awschat" {
   arn    = aws_sns_topic.sns_topic_awschat.arn
-  policy = data.aws_iam_policy_document.sns_topic_awschat_policy_document.json
+  policy = data.aws_iam_policy_document.sns_topic_policy_document_awschat.json
 }
 
-data "aws_iam_policy_document" "sns_topic_awschat_policy_document" {
-  policy_id = "__default_policy_ID"
 
-  statement {
-    sid    = "__default_statement_ID"
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions = [
-      "SNS:GetTopicAttributes",
-      "SNS:SetTopicAttributes",
-      "SNS:AddPermission",
-      "SNS:RemovePermission",
-      "SNS:DeleteTopic",
-      "SNS:Subscribe",
-      "SNS:ListSubscriptionsByTopic",
-      "SNS:Publish",
-      "SNS:Receive",
-    ]
-    resources = [
-      aws_sns_topic.sns_topic_awschat.arn,
-    ]
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceOwner"
-      values   = [data.aws_caller_identity.current.account_id]
-    }
-  }
-}
 
 resource "aws_sns_topic_data_protection_policy" "sns_topic_awschat_data_protection_policy" {
   arn = aws_sns_topic.sns_topic_awschat.arn
