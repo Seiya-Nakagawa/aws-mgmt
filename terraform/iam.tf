@@ -73,7 +73,6 @@ resource "aws_iam_policy" "sns_delivery_status_logging_policy" {
           "logs:DescribeLogStreams"
         ],
         Resource = [
-          aws_cloudwatch_log_group.sns_topic_log_group.arn,
           aws_cloudwatch_log_group.sns_topic_awschat_log_group.arn
         ]
       }
