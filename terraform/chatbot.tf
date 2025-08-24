@@ -7,6 +7,5 @@ resource "aws_chatbot_slack_channel_configuration" "chatbot_slack" {
 
   # ログレベルを設定 (ERROR, INFO, NONE)
   logging_level = "ERROR" 
-
   depends_on = [aws_cloudwatch_log_group.loggroup_chatbot]
 }
