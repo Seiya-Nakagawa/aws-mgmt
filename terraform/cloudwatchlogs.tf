@@ -1,7 +1,7 @@
 # Chatbot用のCloudWatchロググループ
 resource "aws_cloudwatch_log_group" "loggroup_chatbot" {
   provider          = aws.us-east-1
-  name              = "/aws/chatbot/chat-configurations/${aws_chatbot_slack_channel_configuration.chatbot_slack.name}"
+  name              = "/aws/chatbot/chat-configurations/${var.system_name}-${var.env}-chatbot-slack"
   retention_in_days = 1
   tags = {
     Name            = "/aws/chatbot/chat-configurations/${var.system_name}-${var.env}-chatbot-slack",
