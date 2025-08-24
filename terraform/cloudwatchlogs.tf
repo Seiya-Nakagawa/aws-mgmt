@@ -1,5 +1,3 @@
-# cloudwatchlogs.tf
-
 # Chatbot用のCloudWatchロググループ
 resource "aws_cloudwatch_log_group" "loggroup_chatbot" {
   name              = "/aws/chatbot/chat-configurations/${var.system_name}-${var.env}-chatbot-slack"

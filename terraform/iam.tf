@@ -39,11 +39,10 @@ resource "aws_iam_policy" "iampolicy_chatbot" {
       {
         Effect = "Allow",
         Action = [
-          "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = aws_cloudwatch_log_group.loggroup_chatbot.arn
+        Resource = "${aws_cloudwatch_log_group.loggroup_chatbot.arn}/*"
       }
     ]
   })
