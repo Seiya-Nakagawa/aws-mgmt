@@ -27,16 +27,3 @@ data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" 
   parent_id = aws_organizations_organizational_unit.ou_dev.id
 }
 
-# SNS用ポリシー定義
-data "aws_iam_policy_document" "sns_topic_policy_document_awschat" {
-  statement {
-    sid    = "AllowAWSChatbot"
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["chatbot.amazonaws.com"]
-    }
-    actions   = ["SNS:Publish"]
-    resources = [aws_sns_topic.sns_topic_awschat.arn]
-  }
-}
