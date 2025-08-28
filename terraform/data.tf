@@ -29,33 +29,14 @@ data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" 
 
 # SNS用ポリシー定義
 data "aws_iam_policy_document" "sns_topic_policy_document_awschat" {
-  policy_id = "__default_policy_ID"
-
   statement {
-    sid    = "__default_statement_ID"
+    sid    = "AllowAWSChatbot"
     effect = "Allow"
     principals {
-      type        = "AWS"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["chatbot.amazonaws.com"]
     }
-    actions = [
-      "SNS:GetTopicAttributes",
-      "SNS:SetTopicAttributes",
-      "SNS:AddPermission",
-      "SNS:RemovePermission",
-      "SNS:DeleteTopic",
-      "SNS:Subscribe",
-      "SNS:ListSubscriptionsByTopic",
-      "SNS:Publish",
-      "SNS:Receive",
-    ]
-    resources = [
-      aws_sns_topic.sns_topic_awschat.arn,
-    ]
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceOwner"
-      values   = [var.aws_account_id]
-    }
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.sns_topic_awschat.arn]
   }
 }
