@@ -1,9 +1,9 @@
-# SNSの配信ステータスログを保存するCloudWatch Log Group (aws_sns_topic.sns_topic_awschat用)
+# SNSの配信ステータスログ
 resource "aws_cloudwatch_log_group" "sns_topic_awschat_log_group" {
-  name              = "sns/${var.aws_region}/${var.aws_account_id}/${var.system_name}-${var.env}-sns-chatbot"
+  name              = "sns/${var.aws_region}/${var.aws_account_id}/${var.system_name}-${var.env}-sns-system"
   retention_in_days = 1
   tags = {
-    Name            = "sns/${var.aws_region}/${var.aws_account_id}/${var.system_name}-${var.env}-sns-chatbot",
+    Name            = "sns/${var.aws_region}/${var.aws_account_id}/${var.system_name}-${var.env}-sns-system",
     SystemName      = var.system_name,
     Env             = var.env,
   }
