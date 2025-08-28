@@ -1,6 +1,6 @@
-resource "aws_sns_topic" "sns_topic_awschat" {
-  name              = "${var.system_name}-${var.env}-sns-awschat"
-  display_name      = "${var.system_name}-${var.env}-sns-awschat"
+resource "aws_sns_topic" "sns_topic_system" {
+  name              = "${var.system_name}-${var.env}-sns-system"
+  display_name      = "${var.system_name}-${var.env}-sns-system"
   kms_master_key_id = "alias/aws/sns"
   delivery_policy = jsonencode({
     "http" : {
@@ -20,24 +20,34 @@ resource "aws_sns_topic" "sns_topic_awschat" {
     }
   })
 
-  # --- 失敗時のログ設定 ---
-  http_failure_feedback_role_arn   = aws_iam_role.sns_delivery_status_logging_role.arn
-  sqs_failure_feedback_role_arn    = aws_iam_role.sns_delivery_status_logging_role.arn
-  lambda_failure_feedback_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
-
-  # ロググループが先に作成されることを保証するための依存関係
-  depends_on = [
-    aws_cloudwatch_log_group.sns_topic_awschat_log_group
-  ]
-
   tags = {
-    Name            = "${var.system_name}-${var.env}-sns-awschat",
+    Name            = "${var.system_name}-${var.env}-sns-system",
     SystemName      = var.system_name,
     Env             = var.env,
   }
 }
 
-resource "aws_sns_topic_policy" "sns_topic_policy_awschat" {
-  arn    = aws_sns_topic.sns_topic_awschat.arn
-  policy = data.aws_iam_policy_document.sns_topic_policy_document_awschat.json
+resource "aws_sns_topic_policy" "sns_topic_policy_system" {
+  arn    = aws_sns_topic.sns_topic_system.arn
+  policy = data.aws_iam_policy_document.sns_topic_policy_document_system.json
+}
+
+data "aws_iam_policy_document" "sns_topic_policy_document_system" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.sns_topic_system.arn]
+  }
+}
+
+resource "aws_sns_topic_subscription" "email_target" {
+  for_each = toset(var.notification_emails)
+
+  topic_arn = aws_sns_topic.sns_topic_system.arn
+  protocol  = "email"
+  endpoint  = each.value
 }

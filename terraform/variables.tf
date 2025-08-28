@@ -39,3 +39,9 @@ variable "slack_channel_id" {
   type        = string
 }
 
+variable "notification_emails" {
+  description = "通知を受け取るメールアドレスのリスト"
+  type        = list(string)
+  default     = []
+}
+
