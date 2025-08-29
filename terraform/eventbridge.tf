@@ -23,8 +23,8 @@ resource "aws_cloudwatch_event_rule" "evbrule_accessanaly" {
   description = "Rule to notify when a new Access Analyzer finding is created"
 
   event_pattern = jsonencode({
-    "source"      = ["aws.accessanalyzer"],
-    "detail-type" = ["Access Analyzer Finding"]
+    "source"      = ["aws.access-analyzer"],
+    "detail-type" = ["IAM Access Analyzer Finding"]
   })
 
   tags = {

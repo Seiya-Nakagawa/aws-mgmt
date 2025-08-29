@@ -27,3 +27,14 @@ data "aws_organizations_organizational_unit_child_accounts" "dev_accounts_list" 
   parent_id = aws_organizations_organizational_unit.ou_dev.id
 }
 
+data "aws_iam_policy_document" "sns_topic_policy_document_system" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.sns_topic_system.arn]
+  }
+}

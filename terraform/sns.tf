@@ -32,18 +32,6 @@ resource "aws_sns_topic_policy" "sns_topic_policy_system" {
   policy = data.aws_iam_policy_document.sns_topic_policy_document_system.json
 }
 
-data "aws_iam_policy_document" "sns_topic_policy_document_system" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["events.amazonaws.com"]
-    }
-    actions   = ["SNS:Publish"]
-    resources = [aws_sns_topic.sns_topic_system.arn]
-  }
-}
-
 resource "aws_sns_topic_subscription" "email_target" {
   for_each = toset(var.notification_emails)
 
