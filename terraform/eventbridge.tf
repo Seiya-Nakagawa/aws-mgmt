@@ -1,22 +1,23 @@
-# AWS Personal Health Dashboard通知
-# resource "aws_cloudwatch_event_rule" "event_rule_health" {
-#   name        = "event-personal-health-dashboard"
-#   event_pattern = <<EOF
-# {
-#   "source": [
-#     "aws.health"
-#   ]
-# }
-# EOF
-#   tags = {
-#     env  = "${var.env}"
-#   }
-# }
+resource "aws_cloudwatch_event_rule" "evbrule_health" {
+  name        = "${var.system_name}-${var.env}-evbrule-health"
+  description = "Rule to notify AWS Personal Health Dashboard events"
 
-# resource "aws_cloudwatch_event_target" "event_target_health" {
-#   rule      = aws_cloudwatch_event_rule.event_rule_health.id
-#   arn       = aws_sns_topic.sns_topic_system.arn
-# }
+  event_pattern = jsonencode({
+    source = ["aws.health"]
+  })
+
+  tags = {
+    Name       = "${var.system_name}-${var.env}-health-event-rule",
+    SystemName = var.system_name,
+    Env        = var.env,
+  }
+}
+
+resource "aws_cloudwatch_event_target" "evbrule_target_health_sns_system" {
+  rule      = aws_cloudwatch_event_rule.evbrule_health.name
+  target_id = "SendToSNSTopicForHealth"
+  arn       = aws_sns_topic.sns_topic_system.arn
+}
 
 resource "aws_cloudwatch_event_rule" "evbrule_accessanaly" {
   name        = "${var.system_name}-${var.env}-evbrule-accessanaly"

@@ -24,11 +24,6 @@ variable "aws_account_id" {
   type        = string
 }
 
-# variable "slack_workspace_id" {
-#   description = "SlackワークスペースID"
-#   type        = string
-# }
-
 variable "slack_team_id" {
   description = "SlackチームID"
   type        = string
@@ -42,6 +37,17 @@ variable "slack_channel_id" {
 variable "notification_emails" {
   description = "通知を受け取るメールアドレスのリスト"
   type        = list(string)
+  default     = []
+}
+
+variable "budget_amount" {
+  description = "月間の予算額(USD)"
+  type        = number
+}
+
+variable "budget_thresholds" {
+  description = "予算アラートを通知するしきい値（パーセンテージ）のリスト"
+  type        = list(number)
   default     = []
 }
 
