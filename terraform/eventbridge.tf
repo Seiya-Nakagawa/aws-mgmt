@@ -24,7 +24,7 @@ resource "aws_cloudwatch_event_rule" "evbrule_accessanaly" {
 
   event_pattern = jsonencode({
     "source"      = ["aws.access-analyzer"],
-    "detail-type" = ["IAM Access Analyzer Finding"]
+    "detail-type" = ["Access Analyzer Finding"]
   })
 
   tags = {
