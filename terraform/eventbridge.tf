@@ -50,10 +50,6 @@ resource "aws_cloudwatch_event_rule" "evbrule_trustedadvisor" {
 
   event_pattern = jsonencode({
     source      = ["aws.trustedadvisor"],
-    "detail-type" = ["Trusted Advisor Check Item Refresh Notification"],
-    detail = {
-      status = ["ERROR", "WARNING"]
-    }
   })
 
   tags = {
