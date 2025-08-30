@@ -66,5 +66,5 @@ resource "aws_cloudwatch_event_rule" "evbrule_trustedadvisor" {
 resource "aws_cloudwatch_event_target" "evbrule_target_trustedadvisor_sns_security" {
   rule      = aws_cloudwatch_event_rule.evbrule_trustedadvisor.name
   target_id = "SendToSNSTopicForSystem"
-  arn       = aws_sns_topic.sns_topic_security.arn
+  arn       = aws_sns_topic.sns_topic_system.arn
 }
