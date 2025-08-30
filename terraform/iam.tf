@@ -10,32 +10,6 @@ resource "aws_accessanalyzer_analyzer" "accessanaly" {
   }
 }
 
-# --- SNS配信ステータスログ用 --- 
-# SNSがCloudWatch Logsに書き込むための権限を定義するIAMポリシー
-resource "aws_iam_policy" "sns_delivery_status_logging_policy" {
-  name        = "sns-delivery-status-logging-policy"
-  description = "Allows SNS to write delivery status logs to CloudWatch"
-  
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:GetLogEvents",
-          "logs:DescribeLogStreams"
-        ],
-        Resource = [
-          aws_cloudwatch_log_group.sns_topic_system_log_group.arn
-        ]
-      }
-    ]
-  })
-}
-
 # SNSサービスが引き受けるためのIAMロール
 resource "aws_iam_role" "sns_delivery_status_logging_role" {
   name               = "sns-delivery-status-logging-role"
