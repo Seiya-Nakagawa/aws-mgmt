@@ -1,7 +1,7 @@
 resource "aws_sns_topic" "sns_topic_system" {
   name              = "${var.system_name}-${var.env}-sns-system"
   display_name      = "${var.system_name}-${var.env}-sns-system"
-  kms_master_key_id = "alias/aws/sns"
+  # kms_master_key_id = "alias/aws/sns"
   delivery_policy = jsonencode({
     "http" : {
       "defaultHealthyRetryPolicy" : {
