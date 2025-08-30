@@ -20,6 +20,15 @@ resource "aws_sns_topic" "sns_topic_system" {
     }
   })
 
+  # --- 以下を追記 ---
+  # 配信成功時のログ設定
+  delivery_feedback_success_iam_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
+  application_success_feedback_role_arn  = aws_iam_role.sns_delivery_status_logging_role.arn
+  # 配信失敗時のログ設定
+  delivery_feedback_failure_iam_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
+  application_failure_feedback_role_arn  = aws_iam_role.sns_delivery_status_logging_role.arn
+  # --- 追記ここまで ---
+
   tags = {
     Name            = "${var.system_name}-${var.env}-sns-system",
     SystemName      = var.system_name,
