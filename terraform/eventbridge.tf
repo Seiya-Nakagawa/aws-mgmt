@@ -42,3 +42,29 @@ resource "aws_cloudwatch_event_target" "evbrule_target_sns_system" {
   target_id = "SendToSNSTopicForSystem"
   arn       = aws_sns_topic.sns_topic_system.arn
 }
+
+# Trusted Advisor監視用ルール
+resource "aws_cloudwatch_event_rule" "evbrule_trustedadvisor" {
+  name        = "${var.system_name}-${var.env}-evbrule-trustedadvisor"
+  description = "Rule to notify AWS Trusted Advisor events"
+
+  event_pattern = jsonencode({
+    source      = ["aws.trustedadvisor"],
+    "detail-type" = ["Trusted Advisor Check Item Refresh Notification"],
+    detail = {
+      status = ["ERROR", "WARNING"]
+    }
+  })
+
+  tags = {
+    Name       = "${var.system_name}-${var.env}-trustedadvisor-finding-rule",
+    SystemName = var.system_name,
+    Env        = var.env,
+  }
+}
+
+resource "aws_cloudwatch_event_target" "evbrule_target_trustedadvisor_sns_security" {
+  rule      = aws_cloudwatch_event_rule.evbrule_trustedadvisor.name
+  target_id = "SendToSNSTopicForSecurity"
+  arn       = aws_sns_topic.sns_topic_security.arn
+}
