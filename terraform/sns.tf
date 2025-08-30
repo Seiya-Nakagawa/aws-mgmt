@@ -20,14 +20,13 @@ resource "aws_sns_topic" "sns_topic_system" {
     }
   })
 
-  # --- 以下を追記 ---
-  # 配信成功時のログ設定
-  delivery_feedback_success_iam_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
-  application_success_feedback_role_arn  = aws_iam_role.sns_delivery_status_logging_role.arn
-  # 配信失敗時のログ設定
-  delivery_feedback_failure_iam_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
-  application_failure_feedback_role_arn  = aws_iam_role.sns_delivery_status_logging_role.arn
-  # --- 追記ここまで ---
+  # 配信失敗時のログ設定（失敗は全てログに出力されます）
+  logging_failure_feedback_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
+
+  # # 配信成功時のログ設定（成功はサンプリングレートに基づいてログに出力されます）
+  # logging_success_feedback_role_arn    = aws_iam_role.sns_delivery_status_logging_role.arn
+  # # 成功ログのサンプリングレート (1-100)。100を指定すると全ての成功がログ記録される
+  # logging_success_feedback_sample_rate = "" 
 
   tags = {
     Name            = "${var.system_name}-${var.env}-sns-system",
