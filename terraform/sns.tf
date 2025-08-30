@@ -1,17 +1,17 @@
 resource "aws_sns_topic" "sns_topic_system" {
-  name              = "${var.system_name}-${var.env}-sns-system"
-  display_name      = "${var.system_name}-${var.env}-sns-system"
-  # kms_master_key_id = "alias/aws/sns"
+  name         = "${var.system_name}-${var.env}-sns-system"
+  display_name = "${var.system_name}-${var.env}-sns-system"
+
   delivery_policy = jsonencode({
     "http" : {
       "defaultHealthyRetryPolicy" : {
-        "minDelayTarget" : 20,
-        "maxDelayTarget" : 20,
-        "numRetries" : 3,
+        "minDelayTarget"     : 20,
+        "maxDelayTarget"     : 20,
+        "numRetries"         : 3,
         "numMaxDelayRetries" : 0,
-        "numNoDelayRetries" : 0,
+        "numNoDelayRetries"  : 0,
         "numMinDelayRetries" : 0,
-        "backoffFunction" : "linear"
+        "backoffFunction"    : "linear"
       },
       "disableSubscriptionOverrides" : false,
       "defaultThrottlePolicy" : {
@@ -20,18 +20,13 @@ resource "aws_sns_topic" "sns_topic_system" {
     }
   })
 
-  # 配信失敗時のログ設定（失敗は全てログに出力されます）
-  logging_failure_feedback_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
-
-  # # 配信成功時のログ設定（成功はサンプリングレートに基づいてログに出力されます）
-  # logging_success_feedback_role_arn    = aws_iam_role.sns_delivery_status_logging_role.arn
-  # # 成功ログのサンプリングレート (1-100)。100を指定すると全ての成功がログ記録される
-  # logging_success_feedback_sample_rate = "" 
+  # 配信失敗時のログ設定
+  http_failure_feedback_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
 
   tags = {
-    Name            = "${var.system_name}-${var.env}-sns-system",
-    SystemName      = var.system_name,
-    Env             = var.env,
+    Name       = "${var.system_name}-${var.env}-sns-system"
+    SystemName = var.system_name
+    Env        = var.env
   }
 }
 
