@@ -19,15 +19,6 @@ resource "aws_sns_topic" "sns_topic_system" {
       }
     }
   })
-
-  # 配信失敗時のログ設定
-  http_failure_feedback_role_arn = aws_iam_role.sns_delivery_status_logging_role.arn
-
-  tags = {
-    Name       = "${var.system_name}-${var.env}-sns-system"
-    SystemName = var.system_name
-    Env        = var.env
-  }
 }
 
 resource "aws_sns_topic_policy" "sns_topic_policy_system" {
