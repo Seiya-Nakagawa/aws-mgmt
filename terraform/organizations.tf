@@ -39,15 +39,14 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
   }
 }
 
-# Todo:システム構築完了後に有効化
 # メンバーアカウントの作成
-# resource "aws_organizations_account" "ou_dev" {
-#   for_each = var.new_accounts
-#   name      = each.value.name
-#   email     = each.value.email
-#   parent_id = local.ou_ids[each.value.ou_name]
-#   role_name = "OrganizationAccountAccessRole"
-# }
+resource "aws_organizations_account" "member_accounts" {
+  for_each = { for acc in local.member_accounts : acc.email => acc }
+  name      = each.value.name
+  email     = each.value.email
+  parent_id = local.ou_id_map[each.value.ou_name]
+  role_name = "OrganizationAccountAccessRole"
+}
 
 # リージョン制約ポリシー
 resource "aws_organizations_policy" "org_policy_region_restriction" {

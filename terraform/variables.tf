@@ -24,16 +24,6 @@ variable "aws_account_id" {
   type        = string
 }
 
-variable "slack_team_id" {
-  description = "SlackチームID"
-  type        = string
-}
-
-variable "slack_channel_id" {
-  description = "SlackチャンネルID"
-  type        = string
-}
-
 variable "notification_emails" {
   description = "通知を受け取るメールアドレスのリスト"
   type        = list(string)
