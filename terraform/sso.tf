@@ -81,6 +81,11 @@ resource "aws_identitystore_user" "administrators" {
   identity_store_id = local.identity_store_id
   user_name         = each.key # Assuming each.key is the desired username (e.g., email)
   display_name      = each.key # Using username as display name for simplicity
+
+  name {
+    family_name = "Admin"
+    given_name  = "User"
+  }
 }
 
 # 管理者グループへのメンバーシップを作成
