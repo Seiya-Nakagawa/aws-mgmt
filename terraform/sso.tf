@@ -94,7 +94,7 @@ resource "aws_identitystore_group_membership" "administrators" {
 
   identity_store_id = local.identity_store_id
   group_id          = aws_identitystore_group.administrators.group_id
-  member_id         = each.value.id
+  member_id         = each.value.user_id
 }
 
 # 管理者グループにすべてのメンバーアカウントへの権限を割り当て
