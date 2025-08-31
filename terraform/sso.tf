@@ -72,12 +72,7 @@ resource "aws_identitystore_group" "administrators" {
   identity_store_id = local.identity_store_id
 }
 
-# member_accounts.json から管理者ユーザーのリストを平坦化
-locals {
-  administrator_emails = toset(flatten([
-    for account in local.member_accounts : account.administrators
-  ]))
-}
+
 
 # 管理者ユーザーの情報を取得
 data "aws_identitystore_user" "administrators" {

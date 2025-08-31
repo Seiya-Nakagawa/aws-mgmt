@@ -10,6 +10,11 @@ locals {
   sso_instance_arn  = one(data.aws_ssoadmin_instances.sso_instances.arns)
   identity_store_id = one(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)
 
+  # member_accounts.json から管理者ユーザーのリストを平坦化
+  administrator_emails = toset(flatten([
+    for account in local.member_accounts : account.administrators
+  ]))
+
   # member_accounts.json のデータから、アカウント割り当てのマップを動的に生成
   # このマップを sso.tf の for_each で利用する
   sso_assignments = {
