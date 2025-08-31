@@ -15,17 +15,25 @@ locals {
     for account in local.member_accounts : account.administrators
   ]))
 
-  # member_accounts.json のデータから、アカウント割り当てのマップを動的に生成
-  # このマップを sso.tf の for_each で利用する
-  sso_assignments = {
+  # 開発者の割り当て情報をフラットなリストとして作成
+  developer_assignments_list = flatten([
     for account in local.member_accounts :
-    for email in account.developers :
-    # ループのキーは "アカウント名-dev-Email" の形式で一意にする
-    "${account.name}-dev-${email}" => {
-      account_id         = aws_organizations_account.member_accounts[account.email].id
-      user_email         = email
-      # アカウントのOU名に応じて、本番用/開発用の開発者権限を割り当てる
-      permission_set_arn = account.ou_name == "prd" ? aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn : aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
+    [
+      for email in account.developers : {
+        account_name       = account.name
+        account_root_email = account.email
+        developer_email    = email
+        ou_name            = account.ou_name
+      }
+    ]
+  ])
+
+  # 上記のリストを元に、Terraform 0.13以前と互換性のある方法でマップを生成
+  sso_assignments = {
+    for dev in local.developer_assignments_list : "${dev.account_name}-dev-${dev.developer_email}" => {
+      account_id         = aws_organizations_account.member_accounts[dev.account_root_email].id
+      user_email         = dev.developer_email
+      permission_set_arn = dev.ou_name == "prd" ? aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn : aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
     }
   }
 }
