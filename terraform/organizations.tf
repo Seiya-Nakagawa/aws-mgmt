@@ -105,31 +105,31 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
 }
 
 # ルートユーザーの操作をブロックするポリシー
-# resource "aws_organizations_policy" "org_policy_block_root" {
-#   name = "${var.system_name}-${var.env}-orgpolicy-deny-root"
-#   content = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect   = "Deny",
-#         Action   = "*",
-#         Resource = "*",
-#         Condition = {
-#           StringLike = {
-#             "aws:PrincipalArn" = "arn:aws:iam::*:root"
-#           }
-#         }
-#       }
-#     ]
-#   })
+resource "aws_organizations_policy" "org_policy_block_root" {
+  name = "${var.system_name}-${var.env}-orgpolicy-deny-root"
+  content = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Deny",
+        Action   = "*",
+        Resource = "*",
+        Condition = {
+          StringLike = {
+            "aws:PrincipalArn" = "arn:aws:iam::*:root"
+          }
+        }
+      }
+    ]
+  })
 
-#   tags = {
-#     Name        = "${var.system_name}-${var.env}-orgpolicy-deny-root",
-#     SystemName  = var.system_name,
-#     Env         = var.env,
-#   }
-#   depends_on = [aws_organizations_organization.org] 
-# }
+  tags = {
+    Name        = "${var.system_name}-${var.env}-orgpolicy-deny-root",
+    SystemName  = var.system_name,
+    Env         = var.env,
+  }
+  depends_on = [aws_organizations_organization.org] 
+}
 
 # ガバナンス保護ポリシー
 resource "aws_organizations_policy" "org_policy_governance" {
@@ -167,7 +167,7 @@ resource "aws_organizations_policy" "org_policy_governance" {
 resource "aws_organizations_policy_attachment" "org_policy_attach_root" {
   for_each = {
     region_restriction = aws_organizations_policy.org_policy_region_restriction.id
-    block_root_user    = aws_organizations_policy.org_policy_block_root.id
+    # block_root_user    = aws_organizations_policy.org_policy_block_root.id
     protect_governance = aws_organizations_policy.org_policy_governance.id
     # tag                = aws_organizations_policy.org_policy_tag.id
   }
