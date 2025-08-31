@@ -74,27 +74,22 @@ resource "aws_identitystore_group" "administrators" {
 
 
 
-# 管理者ユーザーの情報を取得
-data "aws_identitystore_user" "administrators" {
+# 管理者ユーザーの作成
+resource "aws_identitystore_user" "administrators" {
   for_each = local.administrator_emails
 
   identity_store_id = local.identity_store_id
-
-  alternate_identifier {
-    unique_attribute {
-      attribute_path  = "UserName"
-      attribute_value = each.key
-    }
-  }
+  user_name         = each.key # Assuming each.key is the desired username (e.g., email)
+  display_name      = each.key # Using username as display name for simplicity
 }
 
 # 管理者グループへのメンバーシップを作成
 resource "aws_identitystore_group_membership" "administrators" {
-  for_each = data.aws_identitystore_user.administrators
+  for_each = aws_identitystore_user.administrators
 
   identity_store_id = local.identity_store_id
   group_id          = aws_identitystore_group.administrators.group_id
-  member_id         = each.value.user_id
+  member_id         = each.value.id
 }
 
 # 管理者グループにすべてのメンバーアカウントへの権限を割り当て
