@@ -17,17 +17,16 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_pol
   managed_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-# 開発者用許可セット
+# 本番開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
   name             = "${var.system_name}-${var.env}-ps-prd-developer"
-  description      = "Permission set for developers"
+  description      = "Permission set for developers in Production"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
   tags = {
     Name        = "${var.system_name}-${var.env}-ps-prd-developer",
     SystemName  = var.system_name,
     Env         = var.env,
-
   }
 }
 
@@ -46,14 +45,13 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_prd_developer_iam
 # 開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
   name             = "${var.system_name}-${var.env}-ps-dev-developer"
-  description      = "Permission set for developers"
+  description      = "Permission set for developers in Development"
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
   tags = {
     Name        = "${var.system_name}-${var.env}-ps-dev-developer",
     SystemName  = var.system_name,
     Env         = var.env,
-
   }
 }
 
@@ -64,155 +62,85 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_developer_policy"
 }
 
 #-------------------------------------------------
-# グループとユーザー (Groups and Users)
-#-------------------------------------------------
-
-# 組織管理グループ
-resource "aws_identitystore_group" "identity_group_administrators" {
-  identity_store_id = local.identity_store_id
-  display_name      = "${var.system_name}-${var.env}-group-administrators"
-  description       = "Administrators group"
-  depends_on = [
-    # Organizationsが作成された後に実行されることを保証
-    aws_organizations_organization.org
-  ]
-}
-
-# 本番開発者グループ
-resource "aws_identitystore_group" "identity_group_prd_developers" {
-  identity_store_id = local.identity_store_id
-  display_name      = "${var.system_name}-${var.env}-group-prd-developers"
-  description       = "Developers group"
-  depends_on = [
-    aws_organizations_organization.org
-  ]
-}
-
-# 開発者グループ
-resource "aws_identitystore_group" "identity_group_dev_developers" {
-  identity_store_id = local.identity_store_id
-  display_name      = "${var.system_name}-${var.env}-group-dev-developers"
-  description       = "Developers group"
-  depends_on = [
-    aws_organizations_organization.org
-  ]
-}
-
-# ユーザーの作成
-resource "aws_identitystore_user" "identity_user" {
-  for_each          = local.sso_users_data
-  identity_store_id = local.identity_store_id
-
-  user_name    = each.value.email
-  display_name = "${each.value.given_name} ${each.value.family_name}"
-
-  name {
-    given_name  = each.value.given_name
-    family_name = each.value.family_name
-  }
-
-  emails {
-    value   = each.value.email
-    primary = true
-  }
-}
-
-#-------------------------------------------------
-# グループへの所属 (Group Memberships)
-#-------------------------------------------------
-
-# 組織管理グループのメンバーシップを作成
-resource "aws_identitystore_group_membership" "admin_members" {
-  for_each = nonsensitive({
-    for user_id, user_data in local.sso_users_data : user_id => user_data
-    if user_data.group == "administrators"
-  })
-
-  identity_store_id = local.identity_store_id
-  group_id          = aws_identitystore_group.identity_group_administrators.group_id
-  member_id         = aws_identitystore_user.identity_user[each.key].user_id
-}
-
-# 本番開発者グループのメンバーシップを作成
-resource "aws_identitystore_group_membership" "prd_developer_members" {
-  for_each = nonsensitive({
-    for user_id, user_data in local.sso_users_data : user_id => user_data
-    if user_data.group == "prd_developers"
-  })
-
-  identity_store_id = local.identity_store_id
-  group_id          = aws_identitystore_group.identity_group_prd_developers.group_id
-  member_id         = aws_identitystore_user.identity_user[each.key].user_id
-}
-
-# 開発者グループのメンバーシップを作成
-resource "aws_identitystore_group_membership" "dev_developer_members" {
-  for_each = nonsensitive({
-    for user_id, user_data in local.sso_users_data : user_id => user_data
-    if user_data.group == "dev_developers"
-  })
-
-  identity_store_id = local.identity_store_id
-  group_id          = aws_identitystore_group.identity_group_dev_developers.group_id
-  member_id         = aws_identitystore_user.identity_user[each.key].user_id
-}
-
-#-------------------------------------------------
 # アカウント割り当て (Account Assignments)
 #-------------------------------------------------
 
-# 管理者グループをAWSアカウントに割り当て
-resource "aws_ssoadmin_account_assignment" "admin_account" {
+# 管理者グループの作成
+resource "aws_identitystore_group" "administrators" {
+  display_name      = "Administrators"
+  description       = "Group for administrators"
+  identity_store_id = local.identity_store_id
+}
+
+# member_accounts.json から管理者ユーザーのリストを平坦化
+locals {
+  administrator_emails = toset(flatten([
+    for account in local.member_accounts : account.administrators
+  ]))
+}
+
+# 管理者ユーザーの情報を取得
+data "aws_identitystore_user" "administrators" {
+  for_each = local.administrator_emails
+
+  identity_store_id = local.identity_store_id
+
+  alternate_identifier {
+    unique_attribute {
+      attribute_path  = "UserName"
+      attribute_value = each.key
+    }
+  }
+}
+
+# 管理者グループへのメンバーシップを作成
+resource "aws_identitystore_group_membership" "administrators" {
+  for_each = data.aws_identitystore_user.administrators
+
+  identity_store_id = local.identity_store_id
+  group_id          = aws_identitystore_group.administrators.group_id
+  member_id         = each.value.user_id
+}
+
+# 管理者グループにすべてのメンバーアカウントへの権限を割り当て
+resource "aws_ssoadmin_account_assignment" "administrators_group_assignment" {
+  for_each = aws_organizations_account.member_accounts
+
   instance_arn       = local.sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_administrator.arn
 
-  principal_id   = aws_identitystore_group.identity_group_administrators.group_id
+  principal_id   = aws_identitystore_group.administrators.group_id
   principal_type = "GROUP"
 
-  target_id   = data.aws_caller_identity.caller_identity.account_id
+  target_id   = each.value.id
   target_type = "AWS_ACCOUNT"
 }
 
+# member_accounts.json に定義された全ユーザーの情報を参照
+data "aws_identitystore_user" "all_assigned_users" {
+  for_each = toset([
+    for assignment in values(local.sso_assignments) : assignment.user_email
+  ])
+  identity_store_id = local.identity_store_id
 
-# 本番環境の開発者グループを本番の全メンバーアカウントに割り当て
-# resource "aws_ssoadmin_account_assignment" "developer_account_prd" {
-#   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
-#   for_each = {
-#     for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.prd_accounts_list.accounts : acc.id] :
-#     "${aws_identitystore_group.identity_group_prd_developers.group_id}-${account_id}" => {
-#       group_id    = aws_identitystore_group.identity_group_prd_developers.group_id
-#       account_id  = account_id
-#     }
-#   }
+  alternate_identifier {
+    unique_attribute {
+      attribute_path  = "UserName"
+      attribute_value = each.key
+    }
+  }
+}
 
-#   instance_arn       = local.sso_instance_arn
-#   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
-  
-#   principal_id   = each.value.group_id
-#   principal_type = "GROUP"
+# local.sso_assignments マップに基づき、全アカウント割り当てを動的に生成
+resource "aws_ssoadmin_account_assignment" "assignments" {
+  for_each = local.sso_assignments
 
-#   target_id   = each.value.account_id
-#   target_type = "AWS_ACCOUNT"
-# }
+  instance_arn       = local.sso_instance_arn
+  permission_set_arn = each.value.permission_set_arn
 
+  principal_id   = data.aws_identitystore_user.all_assigned_users[each.value.user_email].user_id
+  principal_type = "USER"
 
-# # 開発環境の開発者グループを開発の全メンバーアカウントに割り当て
-# resource "aws_ssoadmin_account_assignment" "developer_account_dev" {
-#   # (管理者グループ) と (本番OUの全アカウントIDリスト) の組み合わせを生成
-#   for_each = {
-#     for account_id in [for acc in data.aws_organizations_organizational_unit_child_accounts.dev_accounts_list.accounts : acc.id] :
-#     "${aws_identitystore_group.identity_group_dev_developers.group_id}-${account_id}" => {
-#       group_id    = aws_identitystore_group.identity_group_dev_developers.group_id
-#       account_id  = account_id
-#     }
-#   }
-
-#   instance_arn       = local.sso_instance_arn
-#   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
-  
-#   principal_id   = each.value.group_id
-#   principal_type = "GROUP"
-
-#   target_id   = each.value.account_id
-#   target_type = "AWS_ACCOUNT"
-# }
+  target_id   = each.value.account_id
+  target_type = "AWS_ACCOUNT"
+}

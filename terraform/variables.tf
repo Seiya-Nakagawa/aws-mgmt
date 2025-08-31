@@ -13,11 +13,7 @@ variable "env" {
   type        = string
 }
 
-variable "sso_user_ids" {
-  type        = list(string)
-  description = "管理対象ユーザーリスト"
-  default     = []
-}
+
 
 variable "aws_account_id" {
   description = "AWSアカウントID"
