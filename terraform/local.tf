@@ -1,5 +1,5 @@
 locals {
-  member_accounts = jsondecode(file("${path.module}/json/member_accounts.json"))
+    member_accounts = jsondecode(data.aws_ssm_parameter.accounts.value)
 
   # OU名とOUリソースのIDをマッピングするヘルパー
   ou_id_map = {
@@ -10,30 +10,31 @@ locals {
   sso_instance_arn  = one(data.aws_ssoadmin_instances.sso_instances.arns)
   identity_store_id = one(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)
 
-  # member_accounts.json から管理者ユーザーのリストを平坦化
-  administrator_emails = toset(flatten([
-    for account in local.member_accounts : account.administrators
-  ]))
+  # SSMパラメータからユーザー情報を読み込み、JSONをパース
+  sso_users = jsondecode(data.aws_ssm_parameter.sso_users.value)
 
-  # 開発者の割り当て情報をフラットなリストとして作成
-  developer_assignments_list = flatten([
-    for account in local.member_accounts :
-    [
-      for email in account.developers : {
-        account_name       = account.name
-        account_root_email = account.email
-        developer_email    = email
-        ou_name            = account.ou_name
+  # 全てのユーザーをフラットなマップに変換（キーはemail）
+  all_users = {
+    for user in local.sso_users : user.email => {
+      familyName = user.familyName
+      givenName  = user.givenName
+    }
+  }
+
+  # グループとグループIDのマップを作成
+  sso_groups = {
+    "Administrators"   = aws_identitystore_group.administrators.group_id
+    "ProductionUsers"  = aws_identitystore_group.production.group_id
+    "DevelopmentUsers" = aws_identitystore_group.development.group_id
+  }
+
+  # グループメンバーシップをフラットなリストに変換
+  group_memberships = flatten([
+    for user_details in local.sso_users : [
+      for group_name in user_details.groups : {
+        user_email = user_details.email
+        group_id   = local.sso_groups[group_name]
       }
     ]
   ])
-
-  # 上記のリストを元に、Terraform 0.13以前と互換性のある方法でマップを生成
-  sso_assignments = {
-    for dev in local.developer_assignments_list : "${dev.account_name}-dev-${dev.developer_email}" => {
-      account_id         = aws_organizations_account.member_accounts[dev.account_root_email].id
-      user_email         = dev.developer_email
-      permission_set_arn = dev.ou_name == "prd" ? aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn : aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
-    }
-  }
 }

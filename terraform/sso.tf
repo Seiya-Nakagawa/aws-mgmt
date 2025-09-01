@@ -17,7 +17,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_pol
   managed_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-# 本番開発者用許可セット
+# 本番環境開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
   name             = "${var.system_name}-${var.env}-ps-prd-developer"
   description      = "Permission set for developers in Production"
@@ -42,7 +42,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_prd_developer_iam
   managed_policy_arn = "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
 }
 
-# 開発者用許可セット
+# 開発環境開発者用許可セット
 resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
   name             = "${var.system_name}-${var.env}-ps-dev-developer"
   description      = "Permission set for developers in Development"
@@ -65,40 +65,56 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_developer_policy"
 # アカウント割り当て (Account Assignments)
 #-------------------------------------------------
 
-# 管理者グループの作成
+# メンバー用管理者グループの作成
 resource "aws_identitystore_group" "administrators" {
   display_name      = "Administrators"
   description       = "Group for administrators"
   identity_store_id = local.identity_store_id
 }
 
+# 本番環境ユーザーグループの作成
+resource "aws_identitystore_group" "production" {
+  display_name      = "ProductionUsers"
+  description       = "Group for production users"
+  identity_store_id = local.identity_store_id
+}
 
+# 開発環境ユーザーグループの作成
+resource "aws_identitystore_group" "development" {
+  display_name      = "DevelopmentUsers"
+  description       = "Group for development users"
+  identity_store_id = local.identity_store_id
+}
 
-# 管理者ユーザーの作成
-resource "aws_identitystore_user" "administrators" {
-  for_each = local.administrator_emails
+# パラメータストアの情報を元に、Identity Centerのユーザーを一括で作成
+resource "aws_identitystore_user" "users" {
+  for_each = local.all_users
 
   identity_store_id = local.identity_store_id
-  user_name         = each.key # Assuming each.key is the desired username (e.g., email)
-  display_name      = each.key # Using username as display name for simplicity
+  user_name         = each.key
+  display_name      = "${each.value.givenName} ${each.value.familyName}"
 
   name {
-    family_name = "Admin"
-    given_name  = "User"
+    family_name = each.value.familyName
+    given_name  = each.value.givenName
   }
 }
 
-# 管理者グループへのメンバーシップを作成
-resource "aws_identitystore_group_membership" "administrators" {
-  for_each = aws_identitystore_user.administrators
+# パラメータストアの情報を元に、グループメンバーシップを一括で作成
+resource "aws_identitystore_group_membership" "memberships" {
+  for_each = { for i, m in local.group_memberships : "${m.user_email}-${m.group_id}" => m }
 
   identity_store_id = local.identity_store_id
-  group_id          = aws_identitystore_group.administrators.group_id
-  member_id         = each.value.user_id
+  group_id          = each.value.group_id
+  member_id         = aws_identitystore_user.users[each.value.user_email].user_id
 }
 
-# 管理者グループにすべてのメンバーアカウントへの権限を割り当て
-resource "aws_ssoadmin_account_assignment" "administrators_group_assignment" {
+#-------------------------------------------------
+# グループへの権限割り当て (Group Account Assignments)
+#-------------------------------------------------
+
+# 管理者グループへの権限割り当て (Administrator, Production, Development)
+resource "aws_ssoadmin_account_assignment" "admin_group_admin_permissions" {
   for_each = aws_organizations_account.member_accounts
 
   instance_arn       = local.sso_instance_arn
@@ -111,31 +127,56 @@ resource "aws_ssoadmin_account_assignment" "administrators_group_assignment" {
   target_type = "AWS_ACCOUNT"
 }
 
-# member_accounts.json に定義された全ユーザーの情報を参照
-data "aws_identitystore_user" "all_assigned_users" {
-  for_each = toset([
-    for assignment in values(local.sso_assignments) : assignment.user_email
-  ])
-  identity_store_id = local.identity_store_id
-
-  alternate_identifier {
-    unique_attribute {
-      attribute_path  = "UserName"
-      attribute_value = each.key
-    }
-  }
-}
-
-# local.sso_assignments マップに基づき、全アカウント割り当てを動的に生成
-resource "aws_ssoadmin_account_assignment" "assignments" {
-  for_each = local.sso_assignments
+resource "aws_ssoadmin_account_assignment" "admin_group_prod_permissions" {
+  for_each = aws_organizations_account.member_accounts
 
   instance_arn       = local.sso_instance_arn
-  permission_set_arn = each.value.permission_set_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
 
-  principal_id   = data.aws_identitystore_user.all_assigned_users[each.value.user_email].user_id
-  principal_type = "USER"
+  principal_id   = aws_identitystore_group.administrators.group_id
+  principal_type = "GROUP"
 
-  target_id   = each.value.account_id
+  target_id   = each.value.id
+  target_type = "AWS_ACCOUNT"
+}
+
+resource "aws_ssoadmin_account_assignment" "admin_group_dev_permissions" {
+  for_each = aws_organizations_account.member_accounts
+
+  instance_arn       = local.sso_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
+
+  principal_id   = aws_identitystore_group.administrators.group_id
+  principal_type = "GROUP"
+
+  target_id   = each.value.id
+  target_type = "AWS_ACCOUNT"
+}
+
+# 本番グループへの権限割り当て (Production)
+resource "aws_ssoadmin_account_assignment" "production_group_permissions" {
+  for_each = aws_organizations_account.member_accounts
+
+  instance_arn       = local.sso_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
+
+  principal_id   = aws_identitystore_group.production.group_id
+  principal_type = "GROUP"
+
+  target_id   = each.value.id
+  target_type = "AWS_ACCOUNT"
+}
+
+# 開発グループへの権限割り当て (Development)
+resource "aws_ssoadmin_account_assignment" "development_group_permissions" {
+  for_each = aws_organizations_account.member_accounts
+
+  instance_arn       = local.sso_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
+
+  principal_id   = aws_identitystore_group.development.group_id
+  principal_type = "GROUP"
+
+  target_id   = each.value.id
   target_type = "AWS_ACCOUNT"
 }

@@ -35,8 +35,5 @@ variable "budget_thresholds" {
   default     = []
 }
 
-variable "sso_user_ids" {
-  type        = list(string)
-  description = "SSMパラメータから情報を取得するためのSSOユーザーIDのリスト"
-}
+
 
