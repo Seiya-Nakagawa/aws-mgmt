@@ -88,7 +88,7 @@ resource "aws_identitystore_group" "development" {
 
 # パラメータストアの情報を元に、Identity Centerのユーザーを一括で作成
 resource "aws_identitystore_user" "users" {
-  for_each = local.all_users
+  for_each = nonsensitive(local.users_by_hash)
 
   identity_store_id = local.identity_store_id
   user_name         = each.key
@@ -102,11 +102,11 @@ resource "aws_identitystore_user" "users" {
 
 # パラメータストアの情報を元に、グループメンバーシップを一括で作成
 resource "aws_identitystore_group_membership" "memberships" {
-  for_each = { for i, m in local.group_memberships : "${m.user_email}-${m.group_id}" => m }
+  for_each = nonsensitive({ for i, m in local.group_memberships : "${m.user_hash}-${m.group_id}" => m })
 
   identity_store_id = local.identity_store_id
   group_id          = each.value.group_id
-  member_id         = aws_identitystore_user.users[each.value.user_email].user_id
+  member_id         = aws_identitystore_user.users[each.value.user_hash].user_id
 }
 
 #-------------------------------------------------

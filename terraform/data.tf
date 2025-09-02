@@ -4,29 +4,16 @@ data "aws_ssoadmin_instances" "sso_instances" {}
 # 現在のAWS認証情報に基づき、アカウントID、ユーザーID、ARNを取得するデータソース
 data "aws_caller_identity" "caller_identity" {}
 
-# --- Account Data ---
-# アカウントIDのリストをSSMから取得
-data "aws_ssm_parameter" "accounts_list" {
-  name = "/org/accounts-list"
-}
-
-# 各アカウントIDに対応する詳細情報(SecureString)をSSMから取得
+# --- Account & User Data ---
+# アカウント情報を格納した単一のSSMパラメータを読み込む
 data "aws_ssm_parameter" "accounts" {
-  for_each        = toset(split(",", data.aws_ssm_parameter.accounts_list.value))
-  name            = "/org/accounts/${each.key}"
+  name            = "/org/accounts"
   with_decryption = true
 }
 
-# --- User Data ---
-# ユーザーIDのリストをSSMから取得
-data "aws_ssm_parameter" "users_list" {
-  name = "/org/sso/users-list"
-}
-
-# 各ユーザーIDに対応する詳細情報(SecureString)をSSMから取得
+# ユーザー情報を格納した単一のSSMパラメータを読み込む
 data "aws_ssm_parameter" "users" {
-  for_each        = toset(split(",", data.aws_ssm_parameter.users_list.value))
-  name            = "/org/sso/users/${each.key}"
+  name            = "/org/sso/users"
   with_decryption = true
 }
 
