@@ -185,3 +185,15 @@ resource "aws_ssoadmin_account_assignment" "development_group_permissions" {
   target_id   = each.value.id
   target_type = "AWS_ACCOUNT"
 }
+
+# 管理アカウントへの管理者グループの権限割り当て
+resource "aws_ssoadmin_account_assignment" "admin_group_management_account_permissions" {
+  instance_arn       = local.sso_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_administrator.arn
+
+  principal_id   = aws_identitystore_group.administrators.group_id
+  principal_type = "GROUP"
+
+  target_id   = data.aws_caller_identity.caller_identity.account_id
+  target_type = "AWS_ACCOUNT"
+}
