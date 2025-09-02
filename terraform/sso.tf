@@ -91,12 +91,17 @@ resource "aws_identitystore_user" "users" {
   for_each = nonsensitive(local.users_by_hash)
 
   identity_store_id = local.identity_store_id
-  user_name         = each.key
+  user_name         = each.value.email
   display_name      = "${each.value.givenName} ${each.value.familyName}"
 
   name {
     family_name = each.value.familyName
     given_name  = each.value.givenName
+  }
+
+  emails {
+    value = each.value.email
+    type  = "work"
   }
 }
 
