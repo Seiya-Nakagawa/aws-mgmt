@@ -132,31 +132,7 @@ resource "aws_ssoadmin_account_assignment" "admin_group_admin_permissions" {
   target_type = "AWS_ACCOUNT"
 }
 
-resource "aws_ssoadmin_account_assignment" "admin_group_prod_permissions" {
-  for_each = aws_organizations_account.member_accounts
 
-  instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_prd_developer.arn
-
-  principal_id   = aws_identitystore_group.administrators.group_id
-  principal_type = "GROUP"
-
-  target_id   = each.value.id
-  target_type = "AWS_ACCOUNT"
-}
-
-resource "aws_ssoadmin_account_assignment" "admin_group_dev_permissions" {
-  for_each = aws_organizations_account.member_accounts
-
-  instance_arn       = local.sso_instance_arn
-  permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_dev_developer.arn
-
-  principal_id   = aws_identitystore_group.administrators.group_id
-  principal_type = "GROUP"
-
-  target_id   = each.value.id
-  target_type = "AWS_ACCOUNT"
-}
 
 # 本番グループへの権限割り当て (Production)
 resource "aws_ssoadmin_account_assignment" "production_group_permissions" {
