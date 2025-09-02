@@ -41,7 +41,7 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
 
 # メンバーアカウントの作成
 resource "aws_organizations_account" "member_accounts" {
-  for_each  = { for acc in local.member_accounts : acc.email => acc }
+  for_each  = local.member_accounts_map
   name      = each.value.name
   email     = each.value.email
   parent_id = local.ou_id_map[each.value.ou_name]
