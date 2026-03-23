@@ -4,8 +4,8 @@ resource "aws_accessanalyzer_analyzer" "accessanaly" {
   type          = "ORGANIZATION"
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-accessanaly",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-accessanaly",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }

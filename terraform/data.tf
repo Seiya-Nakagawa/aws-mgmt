@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "sns_topic_policy_document_system" {
   statement {
     effect = "Allow"
     principals {
-      type        = "Service"
+      type = "Service"
       identifiers = [
         "events.amazonaws.com"
       ]

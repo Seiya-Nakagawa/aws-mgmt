@@ -1,4 +1,6 @@
 # versions.tf
+## AWS Profile: default
+## AWS Account ID: 572354497317
 
 # Terraformの実行環境に関する設定
 terraform {
