@@ -49,7 +49,7 @@ resource "aws_cloudwatch_event_rule" "evbrule_trustedadvisor" {
   description = "Rule to notify AWS Trusted Advisor events"
 
   event_pattern = jsonencode({
-    source      = ["aws.trustedadvisor"],
+    source = ["aws.trustedadvisor"],
   })
 
   tags = {

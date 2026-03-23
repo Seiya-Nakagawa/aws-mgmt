@@ -21,9 +21,9 @@ resource "aws_organizations_organizational_unit" "ou_prd" {
   parent_id = aws_organizations_organization.org.roots[0].id
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-ou-prd",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-ou-prd",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }
 
@@ -33,31 +33,31 @@ resource "aws_organizations_organizational_unit" "ou_dev" {
   parent_id = aws_organizations_organization.org.roots[0].id
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-ou-dev",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-ou-dev",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }
 
 # メンバーアカウントの作成
 resource "aws_organizations_account" "member_accounts" {
-  for_each  = nonsensitive(local.accounts_by_hash)
-  name      = each.value.name
-  email     = each.value.email
-  parent_id = local.ou_id_map[each.value.ou_name]
-  role_name = "OrganizationAccountAccessRole"
+  for_each          = nonsensitive(local.accounts_by_hash)
+  name              = each.value.name
+  email             = each.value.email
+  parent_id         = local.ou_id_map[each.value.ou_name]
+  role_name         = "OrganizationAccountAccessRole"
   close_on_deletion = true
 }
 
 # リージョン制約ポリシー
 resource "aws_organizations_policy" "org_policy_region_restriction" {
-  name    = "${var.system_name}-${var.env}-orgpolicy-block-region"
+  name = "${var.system_name}-${var.env}-orgpolicy-block-region"
   content = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid      = "DenyRegionalServicesOutsideAllowedRegion",
-        Effect   = "Deny",
+        Sid    = "DenyRegionalServicesOutsideAllowedRegion",
+        Effect = "Deny",
         NotAction = [
           # ローバルサービスについては、リージョン制限対象から除外する。
           "iam:*",
@@ -88,7 +88,8 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
         Condition = {
           StringNotEquals = {
             "aws:RequestedRegion" = [
-              "ap-northeast-1"
+              "ap-northeast-1",
+              "us-east-1"
             ]
           }
         }
@@ -97,11 +98,11 @@ resource "aws_organizations_policy" "org_policy_region_restriction" {
   })
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-orgpolicy-block-region"
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-orgpolicy-block-region"
+    SystemName = var.system_name,
+    Env        = var.env,
   }
-  depends_on = [aws_organizations_organization.org] 
+  depends_on = [aws_organizations_organization.org]
 }
 
 # ルートユーザーの操作をブロックするポリシー
@@ -124,11 +125,11 @@ resource "aws_organizations_policy" "org_policy_block_root" {
   })
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-orgpolicy-deny-root",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-orgpolicy-deny-root",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
-  depends_on = [aws_organizations_organization.org] 
+  depends_on = [aws_organizations_organization.org]
 }
 
 # ガバナンス保護ポリシー
@@ -138,7 +139,7 @@ resource "aws_organizations_policy" "org_policy_governance" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Deny",
+        Effect = "Deny",
         Action = [
           "organizations:LeaveOrganization",
           "organizations:DeleteOrganization",
@@ -156,11 +157,11 @@ resource "aws_organizations_policy" "org_policy_governance" {
   })
 
   tags = {
-    Name        = "${var.system_name}-${var.env}-orgpolicy-protect-governance",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-orgpolicy-protect-governance",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
-  depends_on = [aws_organizations_organization.org] 
+  depends_on = [aws_organizations_organization.org]
 }
 
 # ポリシーをルートにアタッチ

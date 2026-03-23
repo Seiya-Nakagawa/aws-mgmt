@@ -5,9 +5,9 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_administrator" {
   instance_arn     = local.sso_instance_arn
   session_duration = "PT4H" # 4時間
   tags = {
-    Name        = "${var.system_name}-${var.env}-ps-admin",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-ps-admin",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }
 
@@ -24,9 +24,9 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_prd_developer" {
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
   tags = {
-    Name        = "${var.system_name}-${var.env}-ps-prd-developer",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-ps-prd-developer",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }
 
@@ -49,9 +49,9 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_dev_developer" {
   instance_arn     = local.sso_instance_arn
   session_duration = "PT8H" # 8時間
   tags = {
-    Name        = "${var.system_name}-${var.env}-ps-dev-developer",
-    SystemName  = var.system_name,
-    Env         = var.env,
+    Name       = "${var.system_name}-${var.env}-ps-dev-developer",
+    SystemName = var.system_name,
+    Env        = var.env,
   }
 }
 
