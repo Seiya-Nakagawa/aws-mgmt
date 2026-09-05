@@ -1,0 +1,207 @@
+========================================
+開発・管理アカウントの退避すべきデータの最終確認
+実行日時: 2026-09-06
+対象: 開発アカウント(565528060977) / 管理アカウント(331946275788)
+関連Issue: #17（親Issue #14）
+========================================
+
+## 1. 開発アカウント(565528060977) 確認
+
+$ aws s3api list-buckets --profile portfolio-dev --output json
+{
+    "Buckets": [],
+    "Owner": { "ID": "a3ff08f60e089c1f1758c58b02f0c9cafa6ef0d892dcd2382345a37225b54dd1" },
+    "Prefix": null
+}
+
+$ aws rds describe-db-instances --profile portfolio-dev --region ap-northeast-1 --output json
+{ "DBInstances": [] }
+
+$ aws rds describe-db-clusters --profile portfolio-dev --region ap-northeast-1 --output json
+{ "DBClusters": [] }
+
+$ aws ssm describe-parameters --profile portfolio-dev --region ap-northeast-1 --output json
+{ "Parameters": [] }
+
+以下、ap-northeast-1 / us-east-1 の2リージョンで確認（結果はすべて空）。
+
+$ aws ec2 describe-instances --profile portfolio-dev --region {ap-northeast-1,us-east-1} \
+    --query 'Reservations[].Instances[].[InstanceId,State.Name]' --output text
+(出力なし)
+
+$ aws ec2 describe-volumes --profile portfolio-dev --region {ap-northeast-1,us-east-1} \
+    --query 'Volumes[].VolumeId' --output text
+(出力なし)
+
+$ aws ec2 describe-snapshots --profile portfolio-dev --region {ap-northeast-1,us-east-1} \
+    --owner-ids self --query 'Snapshots[].SnapshotId' --output text
+(出力なし)
+
+$ aws dynamodb list-tables --profile portfolio-dev --region {ap-northeast-1,us-east-1} --output text
+(出力なし)
+
+$ aws efs describe-file-systems --profile portfolio-dev --region {ap-northeast-1,us-east-1} \
+    --query 'FileSystems[].FileSystemId' --output text
+(出力なし)
+
+$ aws secretsmanager list-secrets --profile portfolio-dev --region {ap-northeast-1,us-east-1} \
+    --query 'SecretList[].Name' --output text
+(出力なし)
+
+$ aws resourcegroupstaggingapi get-resources --profile portfolio-dev --region ap-northeast-1 \
+    --query 'ResourceTagMappingList[].ResourceARN' --output text
+(出力なし)
+
+$ aws resourcegroupstaggingapi get-resources --profile portfolio-dev --region {ap-northeast-2 他14リージョン} ...
+AccessDeniedException: SCP(p-mdssuwj2)により ap-northeast-1 以外のリージョンで tag:GetResources が明示的に拒否されている。
+（開発OUに適用されたリージョン制限SCPによるもの。ap-northeast-1以外にリソースが存在する可能性は
+ SCPの制約上ほぼ排除できる。他サービスAPI（EC2/RDS/S3等）は個別許可されており上記のとおり空である）
+
+## 2. 管理アカウント(331946275788) 確認
+
+$ aws s3api list-buckets --profile portfolio-mgmt --output json
+{
+    "Buckets": [],
+    "Owner": { "ID": "b1486fcefd8a379f734cbced3e4d578d709af78218fac1f14e4b79b232f9bb8d" },
+    "Prefix": null
+}
+
+$ aws rds describe-db-instances / describe-db-clusters --profile portfolio-mgmt --region {ap-northeast-1,us-east-1}
+(出力なし、いずれも空)
+
+$ aws ssm describe-parameters --profile portfolio-mgmt --region ap-northeast-1 \
+    --query 'Parameters[].Name' --output text
+/org/accounts
+/org/sso/users
+
+$ aws ssm describe-parameters --profile portfolio-mgmt --region us-east-1 --query 'Parameters[].Name' --output text
+(出力なし)
+
+$ aws ec2 describe-instances / describe-volumes / describe-snapshots --profile portfolio-mgmt \
+    --region {ap-northeast-1,us-east-1}
+(出力なし、いずれも空)
+
+$ aws dynamodb list-tables / aws efs describe-file-systems / aws secretsmanager list-secrets \
+    --profile portfolio-mgmt --region {ap-northeast-1,us-east-1}
+(出力なし、いずれも空)
+
+$ aws resourcegroupstaggingapi get-resources --profile portfolio-mgmt --region ap-northeast-1 \
+    --query 'ResourceTagMappingList[].ResourceARN' --output text
+arn:aws:cloudformation:ap-northeast-1:331946275788:stack/EC2/c8925840-a4fc-11eb-aa57-0a1c19324e5d
+arn:aws:sso:::permissionSet/ssoins-77582017d44cf5da/ps-a490cb2ef8c95885
+arn:aws:sso:::permissionSet/ssoins-77582017d44cf5da/ps-973c37c16242e0ea
+arn:aws:ec2:ap-northeast-1:331946275788:route-table/rtb-03b83295cea7f4cb3
+arn:aws:ec2:ap-northeast-1:331946275788:route-table/rtb-00b5b00dd6ec592c3
+arn:aws:ec2:ap-northeast-1:331946275788:subnet/subnet-055b7de8672f9ac5c
+arn:aws:events:ap-northeast-1:331946275788:rule/mgmt-cmn-evbrule-accessanaly
+arn:aws:ec2:ap-northeast-1:331946275788:internet-gateway/igw-00c78ad4f322e64f0
+arn:aws:events:ap-northeast-1:331946275788:rule/mgmt-cmn-evbrule-trustedadvisor
+arn:aws:access-analyzer:ap-northeast-1:331946275788:analyzer/mgmt-cmn-accessanaly
+arn:aws:ec2:ap-northeast-1:331946275788:subnet/subnet-02149a937566cd68d
+arn:aws:ec2:ap-northeast-1:331946275788:vpc/vpc-09890ebabc2e61163
+arn:aws:events:ap-northeast-1:331946275788:rule/mgmt-cmn-evbrule-health
+arn:aws:sso:::permissionSet/ssoins-77582017d44cf5da/ps-5744ab57019aa88a
+
+$ aws resourcegroupstaggingapi get-resources --profile portfolio-mgmt --region us-east-1 \
+    --query 'ResourceTagMappingList[].ResourceARN' --output text
+arn:aws:cloudwatch:us-east-1:331946275788:alarm:【Alerm】cloudwatch-money-$1over
+arn:aws:cloudwatch:us-east-1:331946275788:alarm:【Alerm】cloudwatch-money-$2over
+arn:aws:cloudwatch:us-east-1:331946275788:alarm:【Alerm】cloudwatch-money-$3over
+arn:aws:cloudwatch:us-east-1:331946275788:alarm:【Alerm】cloudwatch-money-$5over
+arn:aws:sns:us-east-1:331946275788:my-sns-money-alert
+arn:aws:iam::331946275788:oidc-provider/app.terraform.io
+arn:aws:payments::331946275788:payment-instrument:be3c58d5-8ada-440f-b601-cf675fbd7033
+arn:aws:payments::331946275788:payment-instrument:b14dfbf5-4e97-4e26-acde-54dcb88058ed
+arn:aws:budgets::331946275788:budget/mgmt-cmn-budget-total
+arn:aws:organizations::331946275788:ou/o-ec9etlnucc/ou-61hv-weg4s8qw
+arn:aws:organizations::331946275788:ou/o-ec9etlnucc/ou-61hv-ussr2fj7
+arn:aws:organizations::331946275788:policy/o-ec9etlnucc/service_control_policy/p-mdssuwj2
+arn:aws:organizations::331946275788:policy/o-ec9etlnucc/service_control_policy/p-tv4xjq9v
+arn:aws:organizations::331946275788:policy/o-ec9etlnucc/service_control_policy/p-khz0yjo8
+
+## 3. 検出事項の詳細調査
+
+### 3.1. SSMパラメータストア（管理アカウント）
+
+$ aws ssm get-parameter --profile portfolio-mgmt --region ap-northeast-1 --name /org/accounts \
+    --with-decryption --query 'Parameter.[Type,LastModifiedDate]' --output text
+SecureString	2025-10-02T16:55:53.430000+09:00
+
+内容: Terraform（organizations.tf）がメンバーアカウント作成に用いる入力データ。
+      portfolio-prd（本番）、portfolio-dev（開発）の2アカウント分の name/ou_name/email を格納。
+
+$ aws ssm get-parameter --profile portfolio-mgmt --region ap-northeast-1 --name /org/sso/users \
+    --with-decryption --query 'Parameter.[Type,LastModifiedDate]' --output text
+SecureString	2025-09-02T22:31:34.686000+09:00
+
+内容: Terraform（sso.tf）がIAM Identity Centerユーザー作成に用いる入力データ。
+      familyName=Nakagawa, givenName=Seiya, groups=[Administrators] の1ユーザー分を格納。
+
+判定: いずれもTerraformの入力用SSMパラメータであり、アプリケーションデータではないが、
+      組織解体後に本番アカウント側でIAM Identity Centerを再構築する際の入力情報として
+      引き続き必要。パラメータの値自体はこのログおよびIssue #14の対応時に把握済みであり、
+      本ログをもって内容の記録・退避が完了したものとする。
+
+### 3.2. CloudFormationスタック "EC2"（管理アカウント / ap-northeast-1）
+
+$ aws cloudformation describe-stacks --profile portfolio-mgmt --region ap-northeast-1 \
+    --stack-name EC2 --query 'Stacks[0].[StackName,StackStatus,CreationTime,LastUpdatedTime]' --output text
+EC2	CREATE_COMPLETE	2021-04-24T12:58:37.038000+00:00	None
+
+$ aws cloudformation list-stack-resources --profile portfolio-mgmt --region ap-northeast-1 \
+    --stack-name EC2 --query 'StackResourceSummaries[].[LogicalResourceId,ResourceType,PhysicalResourceId,ResourceStatus]' \
+    --output table
+MyEC2Instance	AWS::EC2::Instance	i-0fa51ea8768a428db	CREATE_COMPLETE
+
+$ aws ec2 describe-instances --profile portfolio-mgmt --region ap-northeast-1 \
+    --instance-ids i-0fa51ea8768a428db --query 'Reservations[].Instances[].[InstanceId,State.Name]' --output text
+An error occurred (InvalidInstanceID.NotFound) when calling the DescribeInstances operation:
+The instance ID 'i-0fa51ea8768a428db' does not exist
+
+判定: 2021年に手動作成されたCFNスタック。スタック管理上のEC2インスタンスは実体が既に
+      終了済み（ドリフト）でデータは存在しない。付随するVPC/サブネット/ルートテーブル/IGWのみが
+      現存するがネットワーク基盤のみでデータは含まれない。Terraform管理外の残存リソースであり、
+      退避対象データはないが、アカウントクローズ前にスタック自体の削除要否を別途判断する必要がある
+      （本Issueのスコープ外。Issue #14側で確認すべき事項として申し送り）。
+
+### 3.3. 手動課金アラート（管理アカウント / us-east-1）
+
+$ aws sns list-subscriptions-by-topic --profile portfolio-mgmt --region us-east-1 \
+    --topic-arn arn:aws:sns:us-east-1:331946275788:my-sns-money-alert \
+    --query 'Subscriptions[].[Protocol,Endpoint,SubscriptionArn]' --output table
+email	aibdlnew1.work@gmail.com	arn:aws:sns:us-east-1:331946275788:my-sns-money-alert:ccaf3133-9bd0-41d4-8aaf-c2c202dc8758
+
+$ aws cloudwatch describe-alarms --profile portfolio-mgmt --region us-east-1 \
+    --query 'MetricAlarms[].[AlarmName,Threshold,AlarmActions]' --output json
+[
+  ["【Alerm】cloudwatch-money-$1over", 1.0, ["arn:aws:sns:us-east-1:331946275788:my-sns-money-alert"]],
+  ["【Alerm】cloudwatch-money-$2over", 2.0, ["arn:aws:sns:us-east-1:331946275788:my-sns-money-alert"]],
+  ["【Alerm】cloudwatch-money-$3over", 3.0, ["arn:aws:sns:us-east-1:331946275788:my-sns-money-alert"]],
+  ["【Alerm】cloudwatch-money-$5over", 5.0, ["arn:aws:sns:us-east-1:331946275788:my-sns-money-alert"]]
+]
+
+判定: Terraform管理外の手動作成による古い課金アラート（SNSトピック1件・購読1件・CloudWatch
+      アラーム4件）。ユーザーデータではなく、機能的にはIssue #16でTerraform管理下に構築済みの
+      Budgets/SNS/EventBridge（本番アカウント側）と重複する。退避対象データはない。
+
+### 3.4. 支払い方法（Payment Instrument）
+
+payment-instrument が2件（be3c58d5-...、b14dfbf5-...）タグ付きリソースとして検出されたが、
+支払い方法自体はデータ退避の対象ではなく、Issue #14側の「決済方法の登録」対応（本番アカウントでの
+新規登録）で個別に扱う事項。
+
+========================================
+## まとめ
+
+- **開発アカウント(565528060977)**: S3・RDS・SSMパラメータストアを含む全確認対象サービスに
+  データは存在しない。退避すべきデータなし。
+- **管理アカウント(331946275788)**: S3・RDSにデータは存在しない。
+  SSMパラメータストアに /org/accounts、/org/sso/users の2件（Terraformのアカウント・
+  ユーザー作成用入力データ）を検出。内容は本ログ 3.1節に記録済みであり、本番アカウントでの
+  IAM Identity Center再構築時にこの記録を参照する。
+  このほかTerraform管理外の残存リソース（2021年作成のCFNスタック「EC2」、手動課金アラート
+  一式）を検出したが、いずれもデータは含まれず退避不要。CFNスタック「EC2」の削除要否は
+  Issue #14側で別途判断する。
+- 以上により、Issue #17の確認内容（開発・管理アカウントの退避すべきデータの有無）は完了。
+  退避が必要な実データは検出されなかった。
+========================================
