@@ -39,11 +39,10 @@
 | **IaC管理** | Terraform Cloud (Free Tier) | State管理、リモート実行、変数管理 |
 | **認証・アクセス管理** | AWS IAM Identity Center（アカウントインスタンス） | AWS Organizationsに依存しない、本番アカウント単体へのシングルサインオン(SSO)の提供 |
 | **コスト管理** | AWS Budgets | 予算設定と超過アラート通知 |
-| **監視・ログ** | AWS CloudTrail（アカウント証跡） | 本番アカウントのAPI操作ログの収集と監査 |
+| **監視・ログ** | AWS CloudTrail（デフォルトのEvent history） | 本番アカウントの直近90日分のAPI操作ログの参照。追加費用の発生するTrailは構築しない |
 | **セキュリティ監視** | AWS IAM Access Analyzer（アカウントタイプ） | 外部公開されたリソースの継続的な検知 |
 | | AWS Trusted Advisor | AWSベストプラクティスからの逸脱を検知 |
 | **通知** | Amazon Simple Notification Service (SNS) | 各種アラート（コスト、セキュリティ）の管理者への通知 |
-| **ストレージ** | Amazon S3 | CloudTrailログ等の保管 |
 | **バージョン管理** | Git (GitHub) | Terraform構成コードのバージョン管理と変更履歴の記録 |
 
 ### 2.3. 管理ワークフロー (VCS-driven Workflow)
@@ -100,10 +99,9 @@ graph TD
 
 ### 3.4. 監査ログ収集機能 (F-ACC-004)
 
-- **処理概要:** AWS CloudTrailのアカウント証跡を有効化し、本番アカウント内の全API操作ログをS3バケットに収集・保管する。
+- **処理概要:** AWS CloudTrailはアカウント作成時からデフォルトで有効な状態にあり、直近90日分の管理イベントを追加費用なしで自動的に記録する（Event history）。本管理基盤ではこのデフォルト機能をそのまま利用し、Trailの新規構築およびS3への保管は行わない。
 - **処理シーケンス:**
-    1. Terraformでアカウント証跡（`aws_cloudtrail`）とログ保管用S3バケットを定義する。
-    2. 全リージョンの管理イベントを対象に、証跡を有効化する。
+    1. 管理者は、必要に応じてAWSマネジメントコンソールまたはCLIからEvent historyを参照し、API操作ログを確認する。
 
 ## 4. データ設計
 
@@ -127,7 +125,7 @@ graph TD
 
 ### 4.2. 監査ログデータ設計
 
-- CloudTrailのアカウント証跡を有効化し、本番アカウントのログを専用S3バケットに保存する。
+- CloudTrailのデフォルト機能（Event history）により、直近90日分のAPI操作ログを保持する。専用のTrail・S3バケットは構築しない。
 
 ## 5. 非機能要件設計
 
