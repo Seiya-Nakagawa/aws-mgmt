@@ -40,5 +40,22 @@ variable "budget_thresholds" {
   default     = []
 }
 
+variable "admin_email" {
+  description = "本番アカウントIAM Identity Center管理者ユーザーのメールアドレス"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_given_name" {
+  description = "本番アカウントIAM Identity Center管理者ユーザーの名"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_family_name" {
+  description = "本番アカウントIAM Identity Center管理者ユーザーの姓"
+  type        = string
+  sensitive   = true
+}
 
 
