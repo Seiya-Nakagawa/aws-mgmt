@@ -1,7 +1,7 @@
-# Access Analyzer（本番アカウント単体のアカウントタイプ）
+# Access Analyzer
 resource "aws_accessanalyzer_analyzer" "accessanaly" {
   analyzer_name = "${var.system_name}-${var.env}-accessanaly"
-  type          = "ACCOUNT"
+  type          = "ORGANIZATION"
 
   tags = {
     Name       = "${var.system_name}-${var.env}-accessanaly",
