@@ -40,30 +40,3 @@ variable "budget_thresholds" {
   default     = []
 }
 
-variable "admin_email" {
-  description = "本番アカウントIAM Identity Center管理者ユーザーのメールアドレス"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_given_name" {
-  description = "本番アカウントIAM Identity Center管理者ユーザーの名"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_family_name" {
-  description = "本番アカウントIAM Identity Center管理者ユーザーの姓"
-  type        = string
-  sensitive   = true
-}
-
-variable "production_sso_instance_arn" {
-  description = "本番アカウント直下で手動有効化したIAM Identity Center（アカウントインスタンス）のARN"
-  type        = string
-}
-
-variable "production_identity_store_id" {
-  description = "本番アカウント直下で手動有効化したIAM Identity Center（アカウントインスタンス）のIdentity Store ID"
-  type        = string
-}
