@@ -18,6 +18,11 @@ variable "aws_account_id" {
   type        = string
 }
 
+variable "production_account_id" {
+  description = "本番アカウントのAWSアカウントID（OrganizationAccountAccessRoleへのassume_role先）"
+  type        = string
+}
+
 variable "notification_emails" {
   description = "通知を受け取るメールアドレスのリスト"
   type        = list(string)

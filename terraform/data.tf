@@ -42,3 +42,18 @@ data "aws_iam_policy_document" "sns_topic_policy_document_system" {
     resources = [aws_sns_topic.sns_topic_system.arn]
   }
 }
+
+# 本番アカウントのSNSトピックのポリシードキュメントを作成
+data "aws_iam_policy_document" "sns_topic_policy_document_production" {
+  statement {
+    effect = "Allow"
+    principals {
+      type = "Service"
+      identifiers = [
+        "events.amazonaws.com"
+      ]
+    }
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.sns_topic_system_production.arn]
+  }
+}
