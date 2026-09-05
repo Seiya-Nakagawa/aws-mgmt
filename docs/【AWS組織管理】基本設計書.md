@@ -67,6 +67,17 @@ graph TD
 2. **Terraform Cloud:** 実行時にAWSにOIDCトークンを提示し、作成したIAMロールをAssumeRoleする。
 3. **AWS STS:** トークンを検証し、一時的な認証情報を払い出す。
 
+#### 2.4.1. 本番アカウント移行期の認証（一時的な措置）
+
+本番アカウント1つへの統合が完了するまでの間、Terraform Cloudワークスペースは引き続き管理アカウントの
+認証情報（OIDC連携）で実行される。本番アカウント直下に構築するリソース（Access Analyzer、Budgets、
+SNS、EventBridge等）は、本番アカウントがまだ組織のメンバーである間、管理アカウントから
+`OrganizationAccountAccessRole`へのassume_roleによって構築する（`provider = aws.production`）。
+
+本番アカウントを組織から離脱させた後は、この方式は利用できなくなる。その時点でTerraform Cloud
+ワークスペース自体の認証情報を本番アカウントのものに切り替える（<mark>切り替え方式の詳細は未確定
+（Issue #14）</mark>）。
+
 ## 3. 機能設計
 
 ### 3.1. 発見的ガードレール機能 (F-ACC-001)

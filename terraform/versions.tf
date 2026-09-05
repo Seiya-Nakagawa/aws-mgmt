@@ -35,3 +35,16 @@ provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"
 }
+
+# 本番アカウント操作用プロバイダ
+# 本番アカウントが組織のメンバーである間、OrganizationAccountAccessRoleへ
+# assume_roleすることで、管理アカウントの認証情報のまま本番アカウント直下に
+# リソースを構築する（Issue #14: 組織離脱後はワークスペースの認証情報自体を
+# 本番アカウント向けに切り替える想定）
+provider "aws" {
+  alias  = "production"
+  region = "ap-northeast-1"
+  assume_role {
+    role_arn = "arn:aws:iam::${var.production_account_id}:role/OrganizationAccountAccessRole"
+  }
+}
