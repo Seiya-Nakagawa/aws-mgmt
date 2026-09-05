@@ -36,8 +36,4 @@ locals {
   # --- SSO Instance Info ---
   sso_instance_arn  = one(data.aws_ssoadmin_instances.sso_instances.arns)
   identity_store_id = one(data.aws_ssoadmin_instances.sso_instances.identity_store_ids)
-
-  # --- SSO Instance Info (本番アカウント アカウントインスタンス) ---
-  sso_instance_arn_production  = one(data.aws_ssoadmin_instances.sso_instances_production.arns)
-  identity_store_id_production = one(data.aws_ssoadmin_instances.sso_instances_production.identity_store_ids)
 }

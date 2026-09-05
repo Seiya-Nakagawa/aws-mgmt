@@ -58,4 +58,12 @@ variable "admin_family_name" {
   sensitive   = true
 }
 
+variable "production_sso_instance_arn" {
+  description = "本番アカウント直下で手動有効化したIAM Identity Center（アカウントインスタンス）のARN"
+  type        = string
+}
 
+variable "production_identity_store_id" {
+  description = "本番アカウント直下で手動有効化したIAM Identity Center（アカウントインスタンス）のIdentity Store ID"
+  type        = string
+}

@@ -23,6 +23,11 @@ IAM Identity Centerのアカウントインスタンス自体の有効化に対�
 AWSマネジメントコンソールでの手動操作となる。有効化後の許可セット・ユーザー・
 アカウント割り当てはTerraformで管理する。
 
+有効化済みインスタンスのARN・Identity Store IDは、`aws_ssoadmin_instances`データソースで
+動的に取得せず、Terraform変数で明示的に指定する。本番アカウントがまだAWS Organizationsの
+メンバーである間、同データソースは新しく作成したアカウントインスタンスと既存の組織インスタンス
+（管理アカウント側で構築済み）の両方を返してしまい、一意に定まらないため。
+
 本番アカウントがまだAWS Organizationsのメンバーである間は、Terraform Cloudワークスペースの
 認証情報（管理アカウント）から`OrganizationAccountAccessRole`へassume_roleすることで、
 本番アカウント直下にリソースを構築する（[基本設計書 2.4.1](../【AWS組織管理】基本設計書.md#241-本番アカウント移行期の認証一時的な措置)参照）。
@@ -50,6 +55,9 @@ AWSマネジメントコンソールでの手動操作となる。有効化後�
    インスタンスとして有効化される）
 6. 有効化直後に表示される**AWSアクセスポータルのURL**（`https://xxxxxxxxxx.awsapps.com/start`
    の形式）を控えておく（[3.6節](#36-sso経由でのログイン確認)で使用する）
+7. 左メニューの「設定」を開き、**インスタンスARN**（`arn:aws:sso:::instance/ssoins-xxxxxxxxxxxxxxxx`
+   の形式）と**Identity Store ID**（`d-xxxxxxxxxx`の形式）を控えておく
+   （[3.2節](#32-terraform-cloudワークスペース変数の設定)で使用する）
 
    > 有効化に失敗し「組織の管理者がアカウントインスタンスの作成を無効にしています」
    > といった趣旨のエラーが表示される場合、2023年11月15日より前に組織でIAM Identity Center
@@ -59,14 +67,16 @@ AWSマネジメントコンソールでの手動操作となる。有効化後�
 
 ### 3.2. Terraform Cloudワークスペース変数の設定
 
-ワークスペース（`aws-mgmt-cmn`）に以下の変数を設定する。いずれもメールアドレス・氏名という
+ワークスペース（`aws-mgmt-cmn`）に以下の変数を設定する。`admin_*`はメールアドレス・氏名という
 個人情報を含むため、**Sensitive**変数として設定する。
 
-| Terraform変数名 | 説明 |
-| :--- | :--- |
-| `admin_email` | 管理者ユーザーのメールアドレス（SSOのユーザー名になる） |
-| `admin_given_name` | 管理者ユーザーの名 |
-| `admin_family_name` | 管理者ユーザーの姓 |
+| Terraform変数名 | 説明 | Sensitive |
+| :--- | :--- | :--- |
+| `admin_email` | 管理者ユーザーのメールアドレス（SSOのユーザー名になる） | ○ |
+| `admin_given_name` | 管理者ユーザーの名 | ○ |
+| `admin_family_name` | 管理者ユーザーの姓 | ○ |
+| `production_sso_instance_arn` | [3.1節](#31-iam-identity-centerのアカウントインスタンス有効化手動)で控えたインスタンスARN | - |
+| `production_identity_store_id` | [3.1節](#31-iam-identity-centerのアカウントインスタンス有効化手動)で控えたIdentity Store ID | - |
 
 ### 3.3. Terraformコードの静的検証
 
@@ -87,9 +97,8 @@ PRに対する自動Planが発火しない場合は、Terraform CloudのAPIか�
   `aws_identitystore_user.admin_production`、
   `aws_ssoadmin_account_assignment.admin_account_assignment_production`
 - 削除・変更: なし（既存の管理アカウント側リソースへの影響はない想定）
-- `data.aws_ssoadmin_instances.sso_instances_production`が空を返す場合、
-  [3.1節](#31-iam-identity-centerのアカウントインスタンス有効化手動)の有効化が
-  完了していないか、assume_role先のリージョンが東京になっていない
+- `production_sso_instance_arn` / `production_identity_store_id`の値が誤っている場合、
+  `aws_ssoadmin_permission_set`や`aws_identitystore_user`の作成時にAPIエラーとなる
 
 ### 3.5. apply
 

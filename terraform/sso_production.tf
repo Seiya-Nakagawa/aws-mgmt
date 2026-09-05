@@ -6,6 +6,12 @@
 # 本ファイルでは、有効化済みのアカウントインスタンスに対して管理者用の許可セット・
 # ユーザー・アカウント割り当てを作成する。
 #
+# インスタンスARN・Identity Store IDは`aws_ssoadmin_instances`データソースで動的に
+# 取得せず、変数（`production_sso_instance_arn`, `production_identity_store_id`）で
+# 明示的に指定する。本番アカウントがまだAWS Organizationsのメンバーである間、当該
+# データソースは新しく作成したアカウントインスタンスと既存の組織インスタンスの
+# 両方を返してしまい一意に定まらないため。
+#
 # 本番アカウントがまだAWS Organizationsのメンバーである間は、production.tfと同様に
 # OrganizationAccountAccessRoleへのassume_role（provider = aws.production）で操作する。
 
@@ -15,7 +21,7 @@ resource "aws_ssoadmin_permission_set" "ssopermsets_administrator_production" {
 
   name             = "${var.system_name}-${var.env}-ps-admin-prd"
   description      = "Permission set for the production account administrator"
-  instance_arn     = local.sso_instance_arn_production
+  instance_arn     = var.production_sso_instance_arn
   session_duration = "PT4H" # 4時間
   tags = {
     Name       = "${var.system_name}-${var.env}-ps-admin-prd",
@@ -36,7 +42,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "ssopermsets_administrator_pro
 resource "aws_identitystore_user" "admin_production" {
   provider = aws.production
 
-  identity_store_id = local.identity_store_id_production
+  identity_store_id = var.production_identity_store_id
   user_name         = var.admin_email
   display_name      = "${var.admin_given_name} ${var.admin_family_name}"
 
@@ -55,7 +61,7 @@ resource "aws_identitystore_user" "admin_production" {
 resource "aws_ssoadmin_account_assignment" "admin_account_assignment_production" {
   provider = aws.production
 
-  instance_arn       = local.sso_instance_arn_production
+  instance_arn       = var.production_sso_instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.ssopermsets_administrator_production.arn
 
   principal_id   = aws_identitystore_user.admin_production.user_id

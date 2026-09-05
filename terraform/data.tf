@@ -1,11 +1,6 @@
 # 手動で有効化したIAM Identity Centerインスタンスの情報を取得
 data "aws_ssoadmin_instances" "sso_instances" {}
 
-# 本番アカウント直下で手動で有効化したIAM Identity Center（アカウントインスタンス）の情報を取得
-data "aws_ssoadmin_instances" "sso_instances_production" {
-  provider = aws.production
-}
-
 # 現在のAWS認証情報に基づき、アカウントID、ユーザーID、ARNを取得するデータソース
 data "aws_caller_identity" "caller_identity" {}
 
